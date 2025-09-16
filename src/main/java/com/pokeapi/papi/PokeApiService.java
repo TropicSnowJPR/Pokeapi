@@ -1,0 +1,66 @@
+package com.pokeapi.papi;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+public class PokeApiService {
+    // Raw Json Pokemon Data
+    public static String getPokemon(String nameid) {
+
+        if (nameid == null || nameid.isEmpty()) {
+            return "Invalid name or id";
+        }
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://pokeapi.co/api/v2/pokemon/" + nameid.toLowerCase()))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            //System.out.println(response.body());
+            return response.body();
+
+        } catch (Exception e) {
+
+            System.out.println("Error while fetching the Pokemon data:\n" + e);
+            return "{\"error\":\"Could not fetch data\"}";
+
+        }
+
+    }
+
+    // Raw Json Move Data
+    public static String getMove(String moveid) {
+
+        if (moveid == null || moveid.isEmpty()) {
+            return "Invalid move or id";
+        }
+
+        try {
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://pokeapi.co/api/v2/move/" + moveid.toLowerCase()))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            //System.out.println(response.body());
+            return response.body();
+
+        } catch (Exception e) {
+
+            System.out.println("Error while fetching the Moves data:\n" + e);
+            return "{\"error\":\"Could not fetch data\"}";
+
+        }
+
+    }
+
+}

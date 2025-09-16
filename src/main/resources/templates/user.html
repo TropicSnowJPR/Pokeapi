@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Pokédex 2.0</title>
+        <link rel="icon" type="image/png" href="images/webicon.png">
+        <link rel="stylesheet" href="stylesheet/user.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+    </head>
+
+    <body>
+        <main>
+            <div class="header">
+                <div class="left_header">
+                    <button onclick="location.href='/'" type="submit" class="header-button" >Home</button>
+                    <button onclick="location.href='/login'" type="submit" class="header-button" >Login</button>
+                    <button onclick="location.href='/signup'" type="submit" class="header-button" >Sign up</button>
+                </div>
+                <div class="right_header">
+                    <img src="images/logo.png" class="logo" alt="Logo">
+                </div>
+            </div>
+            <div class="main-user-window">
+                <div class="user-window-info">
+                    <div class="frame">
+                        <form class="personal-info-form" method="POST" enctype="multipart/form-data">
+                            <div class="data-div">
+                                <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+                            </div>
+                            <div class="data-div">
+                                <input class="data-input" id="name-input" value="" placeholder="Name">
+                            </div>
+                            <div class="data-div">
+                                <input class="data-input" id="name-input" value="" placeholder="Email">
+                            </div>
+                            <button type="submit">Save</button>
+                        </form>
+                        <form class="data-privacy-form">
+                            <div class="data-div">
+                                <p>Name:</p>
+                                <input class="data-input" id="name-input" value="" placeholder="Name">
+                            </div>
+                            <div class="data-div">
+                                <p>Email:</p>
+                                <input class="data-input" id="name-input" value="" placeholder="Email">
+                            </div>
+                            <div class="data-div">
+                                <p>Password:</p>
+                                <input class="data-input" id="name-input" value="" placeholder="Password">
+                            </div>
+                            <button type="submit">Save</button>
+                        </form>
+                        
+                    </div>
+                </div>
+                <div class="user-window" id="personal-info">
+                    <div class="frame">
+                        <p>Personal Info</p>
+                    </div>
+                </div>
+                <div class="user-window" id="data-privacy">
+                    <div class="frame">
+                        <p>Data & Privacy</p>
+                    </div>
+                </div>
+                <div class="user-window" id="security">
+                    <div class="frame">
+                        <p>Security</p>
+                    </div>
+                </div>
+                <div class="user-window" id="people-sharing">
+                    <div class="frame">
+                        <p>People & sharing</p>
+                    </div>
+                </div>
+                <div class="user-window" id="funny-settings">
+                    <div class="frame">
+                        <p>Secret Settings</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script src="js/user.js"></script>
+    </body>
+</html>

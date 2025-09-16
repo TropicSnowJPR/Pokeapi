@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Pokédex 2.0</title>
+        <link rel="icon" type="image/png" href="images/webicon.png">
+        <link rel="stylesheet" href="stylesheet/home.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+                href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&amp;display=swap"
+                rel="stylesheet">
+    </head>
+
+    <body>
+        <main>
+            <div class="header">
+                <div class="left_header" >
+                    <img src="images/logo.png" class="logo" alt="Logo">
+                </div>
+                <div class="right_header">
+                    <div class="user-name" id="user-name">
+                        <img src="images/user.svg" class="user-pfp-img" alt="user-pfp">
+                        <p id="username"></p>
+                    </div>
+                    <div class="user-logout" id="user-logout">
+                        <img src="images/logout.svg" class="user-logout-img" alt="user-pfp">
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="page-parent">
+                <div class="menu-document" id="menu-document">
+
+                </div>
+
+
+
+                <div class="search-document" id="search-document">
+                    <div class="rectangle-content">
+                        <h2>Pokédex 2.0</h2>
+
+                        <div class="document-field" id="search-section">
+                            <h3>Find a Pokémon by name or ID.</h3>
+
+                            <div class="search-pokemon-selection" >
+                                <input type="text" id="search" placeholder="Search for a Pokemon...">
+                                <button class="image-button" id="search-button"><img src="images/search-icon-white.svg" alt="Search" class="button-img"/></button>
+                                <button class="image-button" id="random-button"><img src="images/shuffel-icon-white.svg" alt="Random" class="button-img"/></button>
+                            </div>
+
+                            <div class="json-pokemon-selection">
+                                <input type="text" placeholder="Json input" class="json-input" id="json-input">
+                                <button class="document-button" id="enter-json-button">Enter Json</button>
+                                <button class="document-button" id="copy-json-button">Copy json</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pokemon-document" id="pokemon-document">
+                    <div class="rectangle-content">
+                        <div class="document-field" id="pokemon-details">
+                            <h3>Pokémon Details</h3>
+
+                            <div id="details-content">
+                                <div class="poke-div" id="pokemon-name">
+                                    <h4 id="name-header">Name: / ID:</h4>
+                                    <button id="add-to-team" class="add-team-button">Add to Team</button> 
+                                </div>
+
+                                <div class="poke-div" id="pokemon-images">
+                                    <h4 id="image-header">Images:</h4>
+                                    <img id="pokemon-pixel-artwork-image"
+                                        src="images/ball.png"
+                                        class="pokemon-image"
+                                        alt="Pixel Artwork">
+                                    <img id="pokemon-official-artwork-image"
+                                        src="images/ball.png"
+                                        class="pokemon-image"
+                                        alt="Official Artwork">
+                                </div>
+
+                                <div class="poke-div" id="pokemon-generation">
+                                    <h4 id="generation-header">Generation:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-height">
+                                    <h4 id="height-header">Height:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-weight">
+                                    <h4 id="weight-header">Weight:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-types">
+                                    <h4 id="types-header">Types:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-abilities">
+                                    <h4 id="abilities-header">Abilities:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-stats">
+                                    <h4 id="stats-header">Stats:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-forms">
+                                    <h4 id="forms-header">Forms:</h4>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-cries">
+                                    <h4 id="cries-header">Cries:</h4>
+
+                                    <h4 id="latest-cry-header">    • Latest Cry:</h4>
+                                    <audio id="latest-cry" class="audio" controls>
+                                        <source src="" type="audio/ogg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+
+                                    <h4 id="legacy-cry-header">    • Legacy Cry:</h4>
+                                    <audio id="legacy-cry" class="audio" controls>
+                                        <source src="" type="audio/ogg">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+
+                                <div class="poke-div" id="pokemon-moves">
+                                    <h4 id="move-header">Moves:</h4>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="document-field" id="teams-section" >
+                            <h3>Your Team</h3>
+                        <div id="team-content"></div>
+                        
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    <script type="module" src="js/home.js"></script>
+    </body>
+</html>

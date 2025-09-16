@@ -1,0 +1,245 @@
+@font-face {
+    font-family: 'Asap';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/Asap-Regular.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Asap';
+    font-style: italic;
+    font-weight: 400;
+    src: url('../fonts/Asap-Italic.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Asap';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/Asap-Bold.ttf') format('ttf');
+}
+
+body {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f0f8ff;
+    color: #f0f8ff;
+
+    /* global Font + Gewicht */
+    font-family: Asap, sans-serif;
+    font-weight: bold;
+}
+
+h4 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font: inherit;
+}
+
+h3 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font: inherit;
+    font-size: 2rem;
+}
+
+h2 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font: inherit;
+    font-size: 3em;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    min-height: 70px;
+    max-height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    backdrop-filter: blur(12px);
+    background-color: #EF5350;
+    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
+    z-index: 10;
+}
+
+.left_header {
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.right_header {
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.header-button {
+    background-color: #263238;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font: inherit;
+    cursor: pointer;
+}
+
+.logo {
+    width: 128px;
+    height: 52px;
+    margin-left: -10px;
+}
+
+.signup-window, #signup-window {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+
+.frame {
+    width: 18vw;
+    height: auto;
+    margin: 40px auto 0;
+    padding: 32px;
+    background: #263238;
+    border-radius: 24px;
+    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
+    display: block;
+    align-content: left;
+    text-align: center;
+    z-index: 1;
+    font: inherit;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input[type="text"], .input[type="password"], .input[type="email"] {
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font: inherit;
+    background-color: #b43f3d;
+    color: #f0f8ff;
+    width: 16vw;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.button[type="submit"] {
+    background-color: #EF5350;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    width: 17.2vw;
+    margin-top: 0px;
+    border: 1px solid #ccc;
+    margin-bottom: 10px;
+    font: inherit;
+    cursor: pointer;
+}
+
+
+
+
+
+/* === Header === */
+.header-dropdown {
+    display: none;
+    float: left;
+    overflow: hidden;
+}
+
+.header-dropdown .header-dropdown-button {
+    font-size: 0px;  
+    border: none;
+    outline: none;
+    color: #f0f8ff;
+    padding: 10px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+    background-color: #263238;
+    margin-right: 10px;
+}
+
+.header a:hover,  .header-dropdown:hover .header-dropdown-button {
+    background-color: #263238;
+}
+
+.header-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f0f8ff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 12px;
+}
+
+.header-dropdown-content a {
+    float: none;
+    color: black;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.header-dropdown-content a:hover {
+    background-color: #EF5350;
+    border-radius: 12px;
+    margin: 3px;
+    padding: 7px;
+}
+
+.header-dropdown:hover .header-dropdown-content {
+    display: block;
+}
+
+
+
+
+/* header */
+.header-button {
+    background-color: #263238;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    margin-bottom: 0;
+    border-radius: 12px;
+    margin-top: 0px;
+    margin-right: 10px;
+    width: 100px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+
+button {
+    background-color: #EF5350;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font: inherit;
+    cursor: pointer;
+    height: 38px;        /* same as input */
+    width: 38px;         /* square buttons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

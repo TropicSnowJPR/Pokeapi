@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html
+        PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h = "http://java.sun.com/jsf/html"
+      lang="en">
+    <h:head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>Pokédex 2.0</title>
+        <link rel="icon" type="image/png" href="#{resource['images:webicon.png']}" />
+        <h:outputStylesheet name="stylesheet/login.css"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+        <link
+                href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&amp;display=swap"
+                rel="stylesheet"
+        />
+    </h:head>
+    <body>
+        <main>
+            <div class="header">
+                <div class="left_header">
+                    <img src="#{resource['images:logo.png']}" class="logo" alt="" />
+                </div>
+                <div class="right_header">
+                    <h:form>
+                        <h:commandButton action = "com.pokeapi.Main" class="header-button" id="home-button" value="Home" />
+                        <h:commandButton action = "login" class="header-button" id="login-button" value="Login" />
+                        <h:commandButton action = "signup" class="header-button" id="signup-button" value="Sign up" />
+                    </h:form>
+
+                </div>
+            </div>
+
+            <div class="login-window" id="login-window">
+                <div class="frame">
+                    <h2>Login</h2>
+                    <input type="text" placeholder="Username" class="input" id="username-input" />
+                    <input type="password" placeholder="Password" class="input" id="password-input" />
+                    <input type="button" value="Login" onclick="console.log('test')" class="button" id="login-button-enter" />
+                </div>
+            </div>
+        </main>
+
+        <script type="text/javascript" src="resources/js/login.js"></script>
+    </body>
+</html>

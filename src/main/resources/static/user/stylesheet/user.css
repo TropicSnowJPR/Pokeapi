@@ -1,0 +1,259 @@
+@font-face {
+    font-family: 'Asap';
+    font-style: normal;
+    font-weight: 400;
+    src: url('../fonts/Asap-Regular.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Asap';
+    font-style: italic;
+    font-weight: 400;
+    src: url('../fonts/Asap-Italic.ttf') format('ttf');
+}
+
+@font-face {
+    font-family: 'Asap';
+    font-style: normal;
+    font-weight: 700;
+    src: url('../fonts/Asap-Bold.ttf') format('ttf');
+}
+
+body {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #f0f8ff;
+    color: #f0f8ff;
+    font-family: Asap, sans-serif;
+    font-weight: bold;
+}
+
+h2, h3, h4 {
+    margin: 0px;
+    padding: 10px;
+    font: inherit;
+}
+h2 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font: inherit;
+    text-align: left;
+    font-size: 3em; 
+}
+h3 {
+    font-size: 2rem;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    min-height: 70px;
+    max-height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    background-color: #EF5350;
+    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
+    z-index: 10;
+}
+
+.left_header,
+.right_header {
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+}
+
+.header-button {
+    background-color: #263238;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    margin: 0 10px 0 0;
+    width: 100px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.logo {
+    width: 128px;
+    height: 52px;
+    margin-left: -10px;
+}
+
+.login-window {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+
+.frame {
+}
+
+input[type="text"], 
+input[type="password"] {
+    padding: 10px;
+    border-radius: 12px;
+    font: inherit;
+    background-color: #b43f3d;
+    color: #f0f8ff;
+    width: 16vw;
+    margin-bottom: 10px;
+}
+
+
+
+.header-dropdown {
+    display: none;
+    position: relative;
+}
+
+.header-dropdown-button {
+    background-color: #263238;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    font: inherit;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.header a:hover, 
+.header-dropdown:hover .header-dropdown-button {
+    background-color: #263238;
+}
+
+.header-dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f0f8ff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    z-index: 1;
+}
+
+.header-dropdown-content a {
+    color: black;
+    padding: 10px;
+    text-decoration: none;
+    display: block;
+}
+.header-dropdown-content a:hover {
+    background-color: #EF5350;
+    border-radius: 12px;
+    margin: 3px;
+    padding: 7px;
+}
+.header-dropdown:hover .header-dropdown-content {
+    display: block;
+}
+
+.user-window {
+    margin: 0px;
+    height: 100%;
+    width: 50%;
+
+}
+
+main {
+    margin-top: 90px; 
+}
+
+.main-user-window {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 20px;
+    background-color: #263238;
+    border-radius: 54px;
+    padding: 40px;
+    margin: 12px;
+}
+
+.user-window-info {
+    grid-column: span 4 / span 4;
+    grid-row: span 5 / span 5;
+    grid-column-start: 2;
+    grid-row-start: 1;
+    height: auto;
+    min-height: 100%;
+}
+
+.user-window, .user-window-info {
+    background-color: #f0f8ff;
+    padding: 50px;
+    width: auto;
+    padding-bottom: 0px;
+    padding-top: 0px;
+    border-radius: 14px;
+    color: #263238;
+}
+
+#selected {
+    background-color: #ccc;
+}
+
+#personal-info {
+    grid-column-start: 1;
+    grid-row-start: 1;
+}
+
+#data-privacy {
+    grid-row-start: 2;
+}
+
+#security {
+    grid-row-start: 3;
+}
+
+#people-sharing {
+    grid-row-start: 4;
+}
+
+#funny-settings {
+    grid-row-start: 5;
+}
+
+input {
+    margin: 10px;
+    background-color: #EF5350;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font: inherit;
+    outline: none;
+    height: 38px;
+    box-sizing: border-box;
+    width: 600px;
+}
+
+button {
+    margin: 10px;
+    background-color: #EF5350;
+    color: #f0f8ff;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font: inherit;
+    cursor: pointer;
+    height: 38px;        /* same as input */
+    width: 38px;         /* square buttons */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 600px;
+}
+
+.data-privacy-form {
+    display: none;
+}
