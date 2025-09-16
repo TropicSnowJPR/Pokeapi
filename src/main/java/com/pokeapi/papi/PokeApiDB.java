@@ -1,7 +1,11 @@
 package com.pokeapi.papi;
 
+import com.pokeapi.papi.config.ConfigManager;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -14,16 +18,26 @@ public class PokeApiDB {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
+    private static PokeApiApplication.MyConfig cfg;
+
+    static {
+        ConfigManager<PokeApiApplication.MyConfig> cm = new ConfigManager<>(
+                Paths.get("config.yml"),
+                PokeApiApplication.MyConfig.class
+        );
+        try {
+            cm.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        cfg = cm.get();
+    }
+
     // User creation
-    public static String createUser(String Username, String Email, String HashedPassword, String Salt) {
-
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
-
+    public static String createUser(String Username, String Email, String HashedPassword, String Salt) throws IOException {
         String insertSQL = "INSERT INTO main.users (username, email, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
 
             pstmt.setString(1, Username);
@@ -51,13 +65,10 @@ public class PokeApiDB {
     }
 
     public static void resetAllCookies() {
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
 
         String query = "TRUNCATE main.cookies";
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              Statement stmt = conn.createStatement()) {
             stmt.executeQuery(query);
         } catch (SQLException e) {
@@ -66,13 +77,9 @@ public class PokeApiDB {
     }
 
     public static boolean checkLogin(String usernameOrEmail, String inputPassword) {
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
-
         String query = "SELECT password_hash, salt FROM main.users WHERE username=? OR email=?";
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
 
@@ -116,10 +123,6 @@ public class PokeApiDB {
     }
 
     public static String generateCookie(String usernameOrEmail) {
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
-
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
         String cookieToken = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
@@ -129,7 +132,7 @@ public class PokeApiDB {
         String queryUserId = "SELECT id FROM main.users WHERE username=? OR email=?";
         Integer userId = null;
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryUserId)) {
 
             stmt.setString(1, usernameOrEmail);
@@ -147,7 +150,7 @@ public class PokeApiDB {
         }
 
         String insertCookie = "INSERT INTO main.cookies (user_id, cookie_value, expires_at) VALUES (?, ?, ?)";
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(insertCookie)) {
 
             stmt.setInt(1, userId);
@@ -164,13 +167,9 @@ public class PokeApiDB {
     }
 
     public static boolean checkIfCookieValid(String cookieValue) {
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
-
         String checkIfCookieValid = "SELECT EXISTS ( SELECT 1 FROM main.cookies WHERE cookie_value=? )";
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(checkIfCookieValid)) {
 
             stmt.setString(1, cookieValue);
@@ -190,14 +189,10 @@ public class PokeApiDB {
     }
 
     public static String getUsernameFromCookie(String cookieValue) {
-        String DBUrl = "jdbc:postgresql://127.0.0.1:5432/pokeapi";
-        String DBUsername = "pokeapi-user";
-        String DBPassword = "dbPoKeAP!";
-
         String queryUserIdFromCookie = "SELECT user_id FROM main.cookies WHERE cookie_value=?";
         Integer userId = null;
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryUserIdFromCookie)) {
 
             stmt.setString(1, cookieValue);
@@ -215,7 +210,7 @@ public class PokeApiDB {
         String queryUsernameFromId = "SELECT username FROM main.users WHERE id=?";
         String username = "";
 
-        try (Connection conn = DriverManager.getConnection(DBUrl, DBUsername, DBPassword);
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryUsernameFromId)) {
 
             stmt.setInt(1, userId);

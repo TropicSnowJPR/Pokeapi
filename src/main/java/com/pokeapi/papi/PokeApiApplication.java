@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -21,20 +22,25 @@ import java.util.*;
 public class PokeApiApplication {
 
     public static class MyConfig {
-        public String username = "defaultUser";
-        public int port = 8080;
+        public String password = "defaultpassword";
+        public String username = "defaultuser";
+        public String url = "localhost";
     }
 
 	public static void main(String[] args) throws Exception {
-        AsciiArt();
-        PokeApiDB.resetAllCookies();
+
         ConfigManager<MyConfig> cm = new ConfigManager<>(
                 Paths.get("config.yml"),
                 MyConfig.class
         );
         cm.load();
         MyConfig cfg = cm.get();
-		SpringApplication.run(PokeApiApplication.class, args);
+
+        PokeApiDB.resetAllCookies();
+
+        AsciiArt();
+
+        SpringApplication.run(PokeApiApplication.class, args);
 	}
 
     @Controller
@@ -160,7 +166,7 @@ public class PokeApiApplication {
 
         @PostMapping("/signup/submit")
         @ResponseBody
-        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) {
+        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) throws IOException {
             Map<String, Object> response = new HashMap<>();
             if (checkForValidUsername(req.username()) && checkForValidEmail(req.email())) {
                 String error = PokeApiDB.createUser(req.username(), req.email(), req.password(), req.salt());
