@@ -28,28 +28,25 @@
                     <div class="frame">
                         <form class="personal-info-form" method="POST" enctype="multipart/form-data">
                             <div class="data-div">
-                                <input type="file" id="avatar" name="avatar" accept="image/png, image/jpeg" />
+                                <div class="avatar">
+                                    <img src="images/user.svg" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
+                                </div>
                             </div>
-                            <div class="data-div">
-                                <input class="data-input" id="name-input" value="" placeholder="Name">
-                            </div>
-                            <div class="data-div">
-                                <input class="data-input" id="name-input" value="" placeholder="Email">
-                            </div>
-                            <button type="submit">Save</button>
+                            <input type="file" id="user-pfp-input" name="avatar" accept=".png, .jpg" />
+                            <button type="button" id="form-submit-button" >Save</button>
                         </form>
                         <form class="data-privacy-form">
                             <div class="data-div">
                                 <p>Name:</p>
-                                <input class="data-input" id="name-input" value="" placeholder="Name">
+                                <input class="data-input" id="idk-input" value="" placeholder="Name">
                             </div>
                             <div class="data-div">
                                 <p>Email:</p>
-                                <input class="data-input" id="name-input" value="" placeholder="Email">
+                                <input class="data-input" id="idk-input" value="" placeholder="Email">
                             </div>
                             <div class="data-div">
                                 <p>Password:</p>
-                                <input class="data-input" id="name-input" value="" placeholder="Password">
+                                <input class="data-input" id="idk-input" value="" placeholder="Password">
                             </div>
                             <button type="submit">Save</button>
                         </form>
@@ -58,12 +55,12 @@
                 </div>
                 <div class="user-window" id="personal-info">
                     <div class="frame">
-                        <p>Personal Info</p>
+                        <p>Avatar</p>
                     </div>
                 </div>
                 <div class="user-window" id="data-privacy">
                     <div class="frame">
-                        <p>Data & Privacy</p>
+                        <p>Team</p>
                     </div>
                 </div>
                 <div class="user-window" id="security">
@@ -73,7 +70,7 @@
                 </div>
                 <div class="user-window" id="people-sharing">
                     <div class="frame">
-                        <p>People & sharing</p>
+                        <p>Other</p>
                     </div>
                 </div>
                 <div class="user-window" id="funny-settings">

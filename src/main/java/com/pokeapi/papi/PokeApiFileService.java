@@ -1,14 +1,14 @@
 package com.pokeapi.papi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 public class PokeApiFileService {
 
     private final Path root;
+    private final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
 
     public PokeApiFileService() {
         this.root = Paths.get("C:/Users/public/papiuploads");
@@ -33,15 +34,15 @@ public class PokeApiFileService {
                 return;
             }
             Files.createDirectories(root);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not initialize storage: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Could not initialize storage: {}", e.getMessage(), e);
         }
     }
 
     // Save a file
     public void save(MultipartFile file, String username) {
         if (file.isEmpty()) {
-            throw new RuntimeException("Failed to store empty file.");
+            logger.error("Failed to store empty file.");
         }
         try (InputStream in = file.getInputStream()) {
             Path userroot = Path.of(root.toString() + '\\' + username);
@@ -54,10 +55,10 @@ public class PokeApiFileService {
             if ((ext.equals(".png")) || (ext.equals(".jpg"))) {
                 Files.copy(in, userroot.resolve("pfp" + ".png"), StandardCopyOption.REPLACE_EXISTING);
             } else {
-                throw new IOException("Suspicious file denied!");
+                logger.warn("Suspicious file detected and denied!");
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to store file: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Failed to store file: {}", e.getMessage(), e);
         }
     }
 
@@ -67,12 +68,13 @@ public class PokeApiFileService {
             Path file = root.resolve(filename).normalize();
             Resource resource = new UrlResource(file.toUri());
             if (!resource.exists() || !resource.isReadable()) {
-                throw new RuntimeException("File not found: " + filename);
+                logger.warn("File not found: {}", filename);
             }
             return resource;
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Error reading file: " + filename, e);
+        } catch (Exception e) {
+            logger.error("Error reading file: {}", filename, e);
         }
+        return null;
     }
 
     // List all files
@@ -82,9 +84,10 @@ public class PokeApiFileService {
                     .filter(Files::isRegularFile)
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read stored files", e);
+        } catch (Exception e) {
+            logger.error("Failed to read stored files", e);
         }
+        return null;
     }
 
     // Delete all files
@@ -92,8 +95,8 @@ public class PokeApiFileService {
         try {
             FileSystemUtils.deleteRecursively(root);
             Files.createDirectories(root);
-        } catch (IOException e) {
-            throw new RuntimeException("Could not clear storage", e);
+        } catch (Exception e) {
+            logger.error("Could not clear storage", e);
         }
     }
 }

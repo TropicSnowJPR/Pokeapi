@@ -4,6 +4,8 @@ import com.pokeapi.papi.config.ConfigManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +29,8 @@ public class PokeApiApplication {
         public String url = "localhost";
     }
 
+    private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
+
 	public static void main(String[] args) throws Exception {
 
         ConfigManager<MyConfig> cm = new ConfigManager<>(
@@ -38,9 +42,9 @@ public class PokeApiApplication {
 
         PokeApiDB.resetAllCookies();
 
-        AsciiArt();
-
         SpringApplication.run(PokeApiApplication.class, args);
+
+        AsciiArt();
 	}
 
     @Controller
@@ -154,6 +158,7 @@ public class PokeApiApplication {
             } else {
                 response.put("loggedIn", true);
                 response.put("username", username);
+                response.put("pfplink", "https://192.168.161.22:8081/papipfps/" + username + "/pfp.png");
             }
 
             return ResponseEntity.ok(response);
@@ -245,14 +250,14 @@ public class PokeApiApplication {
     }
 
     public static void AsciiArt () {
-        System.out.println("========================================");
-        System.out.println(" mmmmmm       mm     mmmmmm     mmmmmm  ");
-        System.out.println(" ##\"\"\"\"#m    ####    ##\"\"\"\"#m   \"\"##\"\"  ");
-        System.out.println(" ##    ##    ####    ##    ##     ##    ");
-        System.out.println(" ######\"    ##  ##   ######\"      ##    ");
-        System.out.println(" ##         ######   ##           ##    ");
-        System.out.println(" ##        m##  ##m  ##         mm##mm  ");
-        System.out.println(" \"\"        \"\"    \"\"  \"\"         \"\"\"\"\"\"  ");
-        System.out.println("========================================");
+        logger.info("========================================");
+        logger.info(" mmmmmm       mm     mmmmmm     mmmmmm  ");
+        logger.info(" ##\"\"\"\"#m    ####    ##\"\"\"\"#m   \"\"##\"\"  ");
+        logger.info(" ##    ##    ####    ##    ##     ##    ");
+        logger.info(" ######\"    ##  ##   ######\"      ##    ");
+        logger.info(" ##         ######   ##           ##    ");
+        logger.info(" ##        m##  ##m  ##         mm##mm  ");
+        logger.info(" \"\"        \"\"    \"\"  \"\"         \"\"\"\"\"\"  ");
+        logger.info("========================================");
     }
 }

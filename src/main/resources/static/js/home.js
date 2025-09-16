@@ -142,7 +142,8 @@ async function fetchMoves() {
 
 // Userpage button functionlity
 async function toUserPage() {
-    location.href = ("/user/" + (await getUsername()));
+    const { username, pfplink } = await getUsername()
+    location.href = ("/user/" + (username));
 }
 
 document.getElementById("user-name").addEventListener("click", toUserPage)
@@ -480,19 +481,18 @@ async function getUsername() {
         if (!data.loggedIn) {
             location.href = "/login";
         } else {
-            return data.username;
+            return { username: data.username, pfplink: data.pfplink };
         }
     } catch (err) {
         console.error("Error:", err);
     }
 }
 
-
-
-async function checkForCookie() {
+async function setUsername() {
     try {
-        const username = await getUsername()
-        document.getElementById("username").innerHTML = (username);
+        const { username, pfplink } = await getUsername();
+        document.getElementById("username").innerHTML = username;
+        document.getElementById("user-pfp-img").src = pfplink;
     } catch (err) {
         console.error("Error:", err);
     }
@@ -500,7 +500,8 @@ async function checkForCookie() {
 
 
 
-await checkForCookie();
+
+await setUsername();
 // Load team on page start
 //loadTeam();
 

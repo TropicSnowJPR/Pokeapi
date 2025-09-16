@@ -1,12 +1,17 @@
 package com.pokeapi.papi;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class PokeApiService {
-    // Raw Json Pokemon Data
+    // Raw Json Pokemon Data#
+    private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
+
     public static String getPokemon(String nameid) {
 
         if (nameid == null || nameid.isEmpty()) {
@@ -27,7 +32,7 @@ public class PokeApiService {
 
         } catch (Exception e) {
 
-            System.out.println("Error while fetching the Pokemon data:\n" + e);
+            logger.error("Error while fetching the Pokemon data:\n{}", String.valueOf(e));
             return "{\"error\":\"Could not fetch data\"}";
 
         }

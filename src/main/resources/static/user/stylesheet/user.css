@@ -168,6 +168,14 @@ main {
     margin-top: 90px; 
 }
 
+.data-div {
+    margin: 20px
+}
+
+p {
+    margin-left: 20px;
+}
+
 .main-user-window {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -190,7 +198,7 @@ main {
 
 .user-window, .user-window-info {
     background-color: #f0f8ff;
-    padding: 50px;
+    padding: 0px;
     width: auto;
     padding-bottom: 0px;
     padding-top: 0px;
@@ -256,4 +264,23 @@ button {
 
 .data-privacy-form {
     display: none;
+}
+
+
+.avatar{
+    margin-top: 10px;
+    width: 150px;            /* change size */
+    aspect-ratio: 1 / 1;     /* keep square container */
+    border-radius: 50%;      /* circle */
+    overflow: hidden;
+    display: inline-block;
+    margin-right: 10px;
+    border: solid #263238;
+}
+
+.avatar img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;       /* crop to fill without warping */
+    display: block;
 }

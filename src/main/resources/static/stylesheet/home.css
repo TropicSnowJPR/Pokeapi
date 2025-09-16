@@ -638,6 +638,19 @@ input {
     justify-content: space-between;
 }
 
-.user-pfp-img {
+
+.avatar{
+    width: 30px;            /* change size */
+    aspect-ratio: 1 / 1;     /* keep square container */
+    border-radius: 50%;      /* circle */
+    overflow: hidden;
+    display: inline-block;
     margin-right: 10px;
+}
+
+.avatar img{
+    width: 30px;
+    height: 30px;
+    object-fit: cover;       /* crop to fill without warping */
+    display: block;
 }
