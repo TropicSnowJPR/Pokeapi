@@ -1,339 +1,162 @@
-// Random Pokemon button functionality
-async function randomPokemon() {
+var fetchPokemonLock = false
+var fetchMoveLock = false
+var fetchTeamLock = false
+
+document.getElementById("user-name").addEventListener("click", async () => {
+    try {
+        location.href = ("/user/" + await fetchUserData("username"));
+    } catch (err) {console.error(err);}
+})
+
+document.getElementById("random-button").addEventListener("click", async () => {
     const randomId = Math.floor(Math.random() * 1025) + 1;
-
     try {
-        const res = await fetchPokemonData(randomId);
-        if (!res.ok) {
-            document.getElementById("pokemon-name").innerHTML =
-                `<h4 id="name-header">Name: Pokemon not Found / ID: None</h4>` +
-                '<input type="button" id="add-to-team" onclick="addToTeam()" value="Add to Team">';
-            return;
-        }
-        const data = await res.json();
-        renderPokemon(data);
-    } catch (err) {
-        console.error(err);
-    }
-};
-
-document.getElementById('random-button').addEventListener('click', randomPokemon);
-
-
-
-
-// Insert Json button functionality
-async function enterJson() {
-    try {
-        const res = document.getElementById("json-input").value;
-        const data = JSON.parse(res);
-        renderPokemon(data);
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-document.getElementById('enter-json-button').addEventListener('click', enterJson);
-
-
-
-
-// Copy Json button functionality
-async function copyJson() {
-    try {
-        const temp = document.getElementById("pokemon-name").textContent.split(": " && "/ ")[0]?.trim();
-        const name = temp.replace("Name: ", "");
-
-        let text = await fetchPokemonData(encodeURIComponent(uncapitalizeFirstLetter(changeSpaceToMinus(name))));
-
-        if (!text.ok) {
-            alert("Failed to Copy");
-            return;
-        }
-
-        navigator.clipboard
-            .writeText(JSON.stringify(await text.json()))
-            .catch((err) => {
-                console.error("Failed to copy: ", err);
-            });
-    } catch (err) {
-        console.error("Failed to copy: ", err);
-    }
-}
-
-document.getElementById('copy-json-button').addEventListener('click', copyJson);
-
-
-
-
-// Get moves tooltip functionality
-async function getMovesData() {
-    if (getMovesLock) {
-        return
-    }
-    
-    try {
-        getMovesLock = true
-        let x = event.clientX;
-        let y = event.clientY;
-        const element = document.elementFromPoint(x,y)
-        if (element.textContent.includes("ID"))
-            return
-        console.debug(element.id)
-        const raw = element.textContent.trim();
-        const name = changeSpaceToMinus(uncapitalizeFirstLetter(raw.replace("• ", "")))
-        console.debug("Move name: ", name)
-        const moveRes = await fetchMoveData(name)
-
-        if (!moveRes.ok) return "";
-        const moveData = await moveRes.json();
-        let tooltipLines = [];
-            if (moveData.id != null) tooltipLines.push(`ID: ${moveData.id}`);
-            if (moveData.type?.name) tooltipLines.push(`Type: ${moveData.type.name}`);
-            if (moveData.damage_class?.name) tooltipLines.push(`Damage Class: ${moveData.damage_class.name}`);
-            if (moveData.accuracy != null) tooltipLines.push(`Accuracy: ${moveData.accuracy}`);
-
-            const tooltipContent = tooltipLines.join("<br>");
-
-        element.innerHTML = `<span class="tooltip">    • ${changeMinusToSpace(capitalizeFirstLetter(moveData.name))}<span class="tooltiptext">${tooltipContent}</span></span>`;
-    } catch (err) {
-        console.error(err)
-    } finally {
-        getMovesLock = false
-    }
-}
-
-async function fetchMoves() {
-    try {
-        const raw = document.getElementById("pokemon-name").textContent.trim();
-        const name = raw.replace("Name: ", "").split("/")[0].trim();
-
-        const pokeRes = await fetchPokemonData(
-            encodeURIComponent(uncapitalizeFirstLetter(changeSpaceToMinus(name)))
-        );
-
-        if (!pokeRes.ok) return alert("Failed to fetch Pokémon data");
-        const pokeData = await pokeRes.json();
-        const movesList = pokeData.moves;
-
-        document.getElementById("pokemon-moves").innerHTML =
-            "<h4>Moves:</h4>" +
-            movesList
-                .map(
-                    (m) =>
-                        `<span class="move-tooltip">    • ${changeMinusToSpace(
-                            capitalizeFirstLetter(m.move.name.replace(/-/g, " "))
-                        )}</span>`
-                )
-                .join("<br>");
-
-        document.querySelectorAll(".move-tooltip").forEach((el) => {
-            el.addEventListener("mouseover", () => { getMovesData() });
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Error while fetching moves");
-    }
-}
-
-
-
-
-// Userpage button functionlity
-async function toUserPage() {
-    const { username, pfplink } = await getUsername()
-    location.href = ("/user/" + (username));
-}
-
-document.getElementById("user-name").addEventListener("click", toUserPage)
-
-
-
-
-document.getElementById("search-button").addEventListener("click", async () => {
-    console.log(
-        "Search button clicked with value:",
-        document.getElementById("search").value
-    );
-
-    const name = document.getElementById("search").value.trim();
-    if (!name) return;
-
-    try {
-        const res = await fetch(`/home/pokemon/${encodeURIComponent(name)}`);
-        const text = await res.text();
-        if (!(text.startsWith('{')) || text.startsWith('[')) {
-            document.getElementById("pokemon-name").textContent =
-                "Name: Pokemon not found / ID: -1";
-            return;
-        }
+        const text = await fetchPokemonData(randomId);
+        if ((!(text.startsWith('{')) || text.startsWith('['))) {throw new Error("Invalid or broken JSON.")}
         const data = JSON.parse(text);
         renderPokemon(data);
-    } catch (err) {
-        console.error(err);
-    }
+    } catch (err) {console.error(err);}
 });
 
-async function addToTeam() {
-    const temp = document.getElementById("pokemon-name").textContent.split(": " && "/ ")[0]?.trim();
-    const name = temp.replace("Name: ", "");
-
-    if (!name || name === "Pokemon not found") {
-        alert("Please search for a Pokémon first.");
-        return;
-    }
-
-    if (await getTeamSize() >= 6) {
-        alert("Your team is full! You can only have 6 Pokémon in your team.");
-        return;
-    }
-
+document.getElementById("search-button").addEventListener("click", search)
+document.getElementById("search").addEventListener('change', search)
+async function search() {
+    const nameid = document.getElementById("search").value.trim();
+    if (!nameid) return;
     try {
-        const res = await fetch(
-            `/team/add?name=${encodeURIComponent(
-                changeSpaceToMinus(uncapitalizeFirstLetter(name))
-            )}`,
-            { method: "POST" }
-        );
+        const text = await fetchPokemonData(nameid);
+        if (text.includes("Not Found")) {alert("Pokemon Not Found"); throw new Error("Pokemon not found.")}
+        if (!(text.startsWith('{')) || text.startsWith('[')) {throw new Error("Invalid or broken JSON.")}   
+        const data = JSON.parse(text);
+        renderPokemon(data);
+    } catch (err) {console.error(err);}
+};
 
-        if (!res.ok) {
-            alert("Failed to add Pokémon to team");
-            return;
-        }
-        await loadTeam();
+document.getElementById("user-logout").addEventListener("click", async () => {
+    try {
+        const response = await fetch("/logout", {method: "GET", credentials: "include"})
+        if (response.ok) {
+            location.href = "/login"
+        } else {throw new Error("Logout failed")}
     } catch (err) {
-        console.error(err);
-        alert("Failed to add Pokémon to team");
+        console.error(err)
     }
-}
+})
 
-// Fetch Pokemon data
 async function fetchPokemonData(nameid) {
-    return await fetch(`/home/pokemon/${nameid}`);
+    try {
+        if (fetchPokemonLock) {return}   
+        fetchPokemonLock = true
+        const res = await fetch("/home/pokemon/" + nameid)
+        return res.text()
+    } finally {fetchPokemonLock = false}
 }
 
 async function fetchMoveData(nameid) {
-    return await fetch(`/home/move/${nameid}`);
+    try {
+        if (fetchMoveLock) {return}
+        fetchMoveLock = true
+        const res = await fetch("/home/move/" + nameid);
+        return res.text();
+    } finally {
+        fetchMoveLock = false
+    }
+}
+
+async function fetchTeamData() {
+    try {
+        if (fetchTeamLock) {return}
+        fetchTeamLock = true
+        const res = await fetch("/home/team")
+        return res.text();
+    } finally {
+        fetchTeamLock = false
+    }
+}
+
+async function fetchUserData(value) {
+    try {
+        const res = await fetch("/getuserdata", {credentials: "include"});
+        const data = await res.json();
+        if (!data.loggedIn) {location.href = "/login";} else {
+            if (value === "username") {return data.username}
+            if (value === "pfpurl") {return data.pfplink}
+            return null
+        }
+    } catch (err) {console.error("Error:", err);}
+}
+
+async function loadWebsite() {
+    try {
+        document.getElementById("username").innerHTML = await fetchUserData("username");
+        document.getElementById("user-pfp-img").src = await fetchUserData("pfpurl");
+        await loadTeam()
+    } catch (err) {console.error("Error:", err);}
 }
 
 
 
 
+// Rework this to much bs for a function
 async function loadTeam() {
     try {
-        const res = await fetch("/team");
-        if (!res.ok) return;
+        const text = await fetchTeamData();
+        if (!(text.startsWith('{')) || text.startsWith('[')) {return}   
+        const data = JSON.parse(text);
 
-        const data = await res.json();
-        const teamContent = document.getElementById("team-content");
-        teamContent.innerHTML = "";
-
-        data.team.forEach((pokemon) => {
-            const div = document.createElement("div");
-            div.className = "poke-div";
-            div.id = "pokemon-team-button";
-
-            // Make the whole div clickable
-            div.addEventListener("click", async () => {
-                await fetchPokemon(pokemon);
-            });
-
-            const nameSpan = document.createElement("h4");
-            nameSpan.textContent = changeMinusToSpace(
-                capitalizeFirstLetter(pokemon)
-            ).replace("- ", " ");
-
-            const removeBtn = document.createElement("input");
-            removeBtn.type = "button";
-            removeBtn.value = "✖";
-            removeBtn.className = "remove-team-btn";
-
-            // Prevent removeBtn click from also triggering div click
-            removeBtn.addEventListener("click", async (e) => {
-                e.stopPropagation(); 
-                await removeFromTeam(pokemon);
-            });
-
-            div.appendChild(nameSpan);
-            div.appendChild(removeBtn);
-            teamContent.appendChild(div);
-        });
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-
-async function getTeamSize() {
-    try {
-        const res = await fetch("/team");
-        if (!res.ok) return 0;
-
-        const data = await res.json();
-        return data.team.length;
-    } catch (err) {
-        console.error(err);
-        return 0;
-    }
-}
-
-async function removeFromTeam(name) {
-    try {
-        const res = await fetch(`/team/remove?name=${encodeURIComponent(name)}`, {
-            method: "POST",
-        });
-
-        if (!res.ok) {
-            alert("Failed to remove Pokémon from team");
+        const teamDiv = document.getElementById("team-div");
+        if (!teamDiv) {
+            console.error("Element with ID 'team-div' not found");
             return;
         }
-        await loadTeam();
+
+        if (data.team_member_1 !== "0" && data.team_member_1 !== undefined) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-1";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_1 + "</p>";
+        } 
+        if (data.team_member_2 !== "0" && data.team_member_2 !== undefined) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-2";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_2 + "</p>";
+        }
+        if (data.team_member_3 !== "0" && data.team_member_3 !== undefined) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-3";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_3 + "</p>";
+        }
+        if (data.team_member_4 !== "0" && data.team_member_4 !== undefined) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-4";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_4 + "</p>";
+        }
+        if (data.team_member_5 !== "0" && data.team_member_5 !== undefined ) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-5";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_5 + "</p>";
+        }
+        if (data.team_member_6 !== "0" && data.team_member_6 !== undefined) {
+            const div = teamDiv.appendChild(document.createElement("div"));
+            div.id = "pokemon-div-6";
+            div.className = "pokemon-div"
+            div.innerHTML = "<p>" + data.team_member_6 + "</p>";
+        }
+        
+
     } catch (err) {
         console.error(err);
-        alert("Failed to remove Pokémon from team");
     }
 }
 
-async function fetchPokemon(name) {
-    try {
-        if (fetchPokemonLock) {
-            return
-        }   
 
-        fetchPokemonLock = true
-        name = name.replace("- ", "").trim();
-
-        try {
-            const res = await fetch(`/home/pokemon/${encodeURIComponent(name)}`);
-            if (!res.ok) {
-                document.getElementById("pokemon-name").textContent =
-                    "Name: Pokemon not found / ID: -1";
-                return;
-            }
-            const data = await res.json();
-            renderPokemon(data);
-        } catch (err) {
-            console.error(err);
-            document.getElementById("pokemon-name").textContent =
-                "Name: Error fetching Pokémon";
-            alert("Error fetching Pokémon data");
-        }
-    } catch (err) {
-        console.error(err)
-    } finally {
-        fetchPokemonLock = false
-    }
-}
-
-async function updatePage() {
-    loadTeam();
-    setTimeout(updatePage, 30000);
-}
 
 function renderPokemon(data) {
     try {
-
         document.getElementById("pokemon-official-artwork-image").src =
             data.sprites.other["official-artwork"].front_default ||
             "ball.png";
@@ -343,9 +166,7 @@ function renderPokemon(data) {
             "ball.png";
 
         document.getElementById("pokemon-name").innerHTML =
-            `<h4 id="name-header">Name: ${changeMinusToSpace(
-                capitalizeFirstLetter(data.name)
-            )} / ID: ${data.id}</h4>` +
+            `<h4 id="name-header">Name: ${(data.name).replace("-", " ")} / ID: ${data.id}</h4>` +
             '<input type="button" id="add-to-team" onclick="addToTeam()" value="Add to Team">';
 
         document.getElementById("pokemon-height").innerHTML =
@@ -368,9 +189,10 @@ function renderPokemon(data) {
             { max: 721, name: "Gen VI" },
             { max: 809, name: "Gen VII" },
             { max: 905, name: "Gen VIII" },
+            { max: 1025, name: "Gen IX"}
         ];
 
-        let gen = "Gen IX";
+        let gen = "Gen X";
         for (const g of generations) {
             if (data.id <= g.max) {
                 gen = g.name;
@@ -386,17 +208,16 @@ function renderPokemon(data) {
             data.stats
                 .map(
                     (s) =>
-                        `<span class="stats-tooltip">    • ${changeMinusToSpace(
-                            capitalizeFirstLetter(s.stat.name.replace(/-/g, " "))
-                        )}: ${s.base_stat}</span>`
+                        `<span class="stats-tooltip">    • ${
+                            s.stat.name.replace(/-/g, " ")
+                        }: ${s.base_stat}</span>`
                 )
                 .join("<br>");
 
         document.getElementById("pokemon-abilities").innerHTML =
-            `<h4 id="abilities-header">Abilities: ${changeMinusToSpace(
+            `<h4 id="abilities-header">Abilities: ${
                 capitalizeFirstLetter(
                     data.abilities.map((a) => a.ability.name).join(", ")
-                )
             )}</h4>`;
 
         document.getElementById("pokemon-forms").innerHTML =
@@ -405,7 +226,7 @@ function renderPokemon(data) {
                 .join(", ")}</h4>`;
         
 
-        show()
+        //show()
         document.getElementById("latest-cry").src =
             data.cries.latest || "./audio/default.ogg";
         document.getElementById("legacy-cry").src =
@@ -420,92 +241,74 @@ function renderPokemon(data) {
     }
 }
 
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
 
-function uncapitalizeFirstLetter(string) {
-    return string.charAt(0).toLowerCase() + string.slice(1);
-}
 
-function changeSpaceToMinus(string) {
-    return string.replace(/ /g, "-");
-}
 
-function changeMinusToSpace(string) {
-    return string.replace(/-/g, " ");
-}
 
-function show() {
-    document.getElementById("latest-cry").style.display = "block";
-    document.getElementById("legacy-cry").style.display = "block";
-    document.getElementById("latest-cry-header").style.display = "block";
-    document.getElementById("legacy-cry-header").style.display = "block";
-}
 
-// async function logout() {
-//     location.href='/logout'
-//     location.href='/'
-// }
 
-async function logout() {
+// Get moves tooltip functionality
+async function getMovesData() {
     try {
-        const response = await fetch("/logout", {
-            method: "GET",
-            credentials: "include"
+        let x = event.clientX;
+        let y = event.clientY;
+        const element = document.elementFromPoint(x,y)
+        if (element.textContent.includes("ID"))
+            return
+        console.debug(element.id)
+        const raw = element.textContent.trim();
+        const name = raw.replace("• ", "",)
+        console.debug("Move name: ", name)
+        const moveRes = await fetchMoveData(name)
+
+        if (!moveRes.ok) return "";
+        const moveData = await moveRes.json();
+        let tooltipLines = [];
+            if (moveData.id != null) tooltipLines.push(`ID: ${moveData.id}`);
+            if (moveData.type?.name) tooltipLines.push(`Type: ${moveData.type.name}`);
+            if (moveData.damage_class?.name) tooltipLines.push(`Damage Class: ${moveData.damage_class.name}`);
+            if (moveData.accuracy != null) tooltipLines.push(`Accuracy: ${moveData.accuracy}`);
+
+            const tooltipContent = tooltipLines.join("<br>");
+
+        element.innerHTML = `<span class="tooltip">    • ${moveData.name}<span class="tooltiptext">${tooltipContent}</span></span>`;
+    } catch (err) {
+        console.error(err)
+    } 
+}
+
+async function fetchMoves() {
+    try {
+        const raw = document.getElementById("pokemon-name").textContent.trim();
+        const name = raw.replace("Name: ", "").split("/")[0].trim();
+
+        const pokeRes = await fetchPokemonData(
+            encodeURIComponent(name)
+        );
+
+        const pokeData = await JSON.parse(pokeRes)
+        const movesList = pokeData.moves;
+
+        document.getElementById("pokemon-moves").innerHTML =
+            "<h4>Moves:</h4>" +
+            movesList
+                .map(
+                    (m) =>
+                        `<span class="move-tooltip">    • ${
+                            m.move.name.replace(/-/g, " ")
+                        }</span>`
+                )
+                .join("<br>");
+
+        document.querySelectorAll(".move-tooltip").forEach((el) => {
+            el.addEventListener("mouseover", () => { getMovesData() });
         });
 
-        if (response.ok) {
-            location.href = "/login"; // Client-seitig weiterleiten
-        } else {
-            console.error("Logout failed");
-        }
     } catch (err) {
-        console.error("Error:", err);
-        location.href = "/error";
+        console.error(err);
+        alert("Error while fetching moves");
     }
 }
 
 
-
-document.getElementById("user-logout").addEventListener("click", logout );
-
-
-async function getUsername() {
-    try {
-        const response = await fetch("/getusername", {
-            credentials: "include"
-        });
-        const data = await response.json();
-
-        if (!data.loggedIn) {
-            location.href = "/login";
-        } else {
-            return { username: data.username, pfplink: data.pfplink };
-        }
-    } catch (err) {
-        console.error("Error:", err);
-    }
-}
-
-async function setUsername() {
-    try {
-        const { username, pfplink } = await getUsername();
-        document.getElementById("username").innerHTML = username;
-        document.getElementById("user-pfp-img").src = pfplink;
-    } catch (err) {
-        console.error("Error:", err);
-    }
-}
-
-
-
-
-await setUsername();
-// Load team on page start
-//loadTeam();
-
-let getMovesLock = false
-let fetchPokemonLock = false
-let menuOpen = true
-
+await loadWebsite();

@@ -124,11 +124,6 @@ public class PokeApiApplication {
             return "redirect:/login";
         }
 
-        // -------- TEAM PAGE --------
-        public String getTeamPage() {
-            return "team"; // This not implementet yet
-        }
-
         // -------- ERROR PAGE --------
         @GetMapping("/error")
         public String errorPage() {
@@ -136,7 +131,7 @@ public class PokeApiApplication {
         }
 
         // -------- APIs --------
-        @GetMapping("/getusername")
+        @GetMapping("/getuserdata")
         public ResponseEntity<Map<String, Object>> getUsernameFromCookie(HttpServletRequest request) {
             Map<String, Object> response = new HashMap<>();
 
@@ -236,10 +231,21 @@ public class PokeApiApplication {
             return ResponseEntity.of(Optional.of(PokeApiService.getMove(nameid)));
         }
 
-        @PostMapping("user/{username}/uploadpfp")
+        @PostMapping("/user/{username}/uploadpfp")
         public  String handleFileUpload(@RequestParam("file")MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username) {
             storage.save(file, username);
             return "redirect:/user/" + username;
+        }
+
+        @GetMapping("home/team")
+        @ResponseBody
+        public Map<String, Object> getTeamPokemons(@CookieValue("loginCookie")String loginCookie) {
+            return PokeApiDB.getPokemonsFromUser(loginCookie);
+        }
+
+        @GetMapping("home/team/add/{nameid}")
+        public Map<String, Object> addPokemonToTeam(@PathVariable String nameid) {
+            return PokeApiDB.addPokemonToTeam(nameid);
         }
     }
 

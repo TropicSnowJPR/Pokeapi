@@ -1,6 +1,8 @@
 package com.pokeapi.papi;
 
 import com.pokeapi.papi.config.ConfigManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -13,9 +15,12 @@ import java.sql.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PokeApiDB {
 
+    private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final SecureRandom secureRandom = new SecureRandom();
 
     private static PokeApiApplication.MyConfig cfg;
@@ -63,6 +68,8 @@ public class PokeApiDB {
     public static String deleteUser(String Username, String Password) {
         return null;
     }
+
+
 
     public static void resetAllCookies() {
 
@@ -226,6 +233,76 @@ public class PokeApiDB {
         }
 
         return username;
+    }
+
+    public static Map<String, Object> getPokemonsFromUser(String cookieValue) {
+        String queryPokemons = "SELECT team_member_1, team_member_2, team_member_3, team_member_4, team_member_5, team_member_6 FROM main.teams WHERE created_by=?";
+        Map<String, Object> pokemons = new HashMap<>();
+
+        String queryUserIdFromCookie = "SELECT user_id FROM main.cookies WHERE cookie_value=?";
+        Integer user_id = null;
+
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
+             PreparedStatement stmt = conn.prepareStatement(queryUserIdFromCookie)) {
+
+            stmt.setString(1, cookieValue);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user_id = rs.getInt("user_id");
+            } else {
+                pokemons.put("success", false);
+                return pokemons;
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error fetching user ID: " + e.getMessage());
+            pokemons.put("success", false);
+            return pokemons;
+        }
+
+        if (user_id == null) {
+            pokemons.put("success", false);
+            return pokemons;
+        }
+
+        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
+             PreparedStatement stmt = conn.prepareStatement(queryPokemons)) {
+
+            stmt.setInt(1, user_id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                pokemons.put("team_member_1", rs.getInt("team_member_1"));
+                pokemons.put("team_member_2", rs.getInt("team_member_2"));
+                pokemons.put("team_member_3", rs.getInt("team_member_3"));
+                pokemons.put("team_member_4", rs.getInt("team_member_4"));
+                pokemons.put("team_member_5", rs.getInt("team_member_5"));
+                pokemons.put("team_member_6", rs.getInt("team_member_6"));
+                pokemons.put("success", true);
+            } else {
+                // No team found for user - treat as valid empty team
+                logger.info("No team found for user ID: " + user_id);
+                pokemons.put("team_member_1", 0);
+                pokemons.put("team_member_2", 0);
+                pokemons.put("team_member_3", 0);
+                pokemons.put("team_member_4", 0);
+                pokemons.put("team_member_5", 0);
+                pokemons.put("team_member_6", 0);
+                pokemons.put("success", true);
+            }
+
+        } catch (SQLException e) {
+            logger.error("Error fetching team: " + e.getMessage());
+            pokemons.put("success", false);
+        }
+
+        return pokemons;
+    }
+
+    public static Map<String, Object> addPokemonToTeam(String nameid) {
+        if (!(nameid + 0).equals(nameid)) {
+
+        }
+        return Map.of();
     }
 }
 
