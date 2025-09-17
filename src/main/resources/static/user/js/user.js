@@ -25,6 +25,7 @@ async function setPFP(file) {
     }
 }
 
+
 document.getElementById("form-submit-button").addEventListener("click", setPFP)
 
 

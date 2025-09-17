@@ -124,6 +124,11 @@ public class PokeApiApplication {
             return "redirect:/login";
         }
 
+        // -------- TEAM PAGE --------
+        public String getTeamPage() {
+            return "team"; // This not implementet yet
+        }
+
         // -------- ERROR PAGE --------
         @GetMapping("/error")
         public String errorPage() {
@@ -154,7 +159,7 @@ public class PokeApiApplication {
             String username = PokeApiDB.getUsernameFromCookie(loginCookie.get());
 
             if (username.matches("invalid cookie")) {
-               response.put("loggedIn", false);
+                response.put("loggedIn", false);
             } else {
                 response.put("loggedIn", true);
                 response.put("username", username);

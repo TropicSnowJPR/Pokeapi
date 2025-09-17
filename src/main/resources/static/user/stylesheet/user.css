@@ -95,9 +95,6 @@ h3 {
     min-height: 100vh;
 }
 
-.frame {
-}
-
 input[type="text"], 
 input[type="password"] {
     padding: 10px;
@@ -276,6 +273,7 @@ button {
     display: inline-block;
     margin-right: 10px;
     border: solid #263238;
+    background-color: #EF5350;
 }
 
 .avatar img{
