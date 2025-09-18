@@ -7,15 +7,16 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Optional;
 
 public class PokeApiService {
     // Raw Json Pokemon Data#
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
 
-    public static String getPokemon(String nameid) {
+    public static Optional<String> getPokemon(String nameid) {
 
         if (nameid == null || nameid.isEmpty()) {
-            return "Invalid name or id";
+            return Optional.empty();
         }
 
         try {
@@ -27,13 +28,16 @@ public class PokeApiService {
 
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
+            if(response.statusCode() != 200)
+                return Optional.empty();
+
             //System.out.println(response.body());
-            return response.body();
+            return Optional.of(response.body());
 
         } catch (Exception e) {
 
             logger.error("Error while fetching the Pokemon data:\n{}", String.valueOf(e));
-            return "{\"error\":\"Could not fetch data\"}";
+            return Optional.empty();
 
         }
 

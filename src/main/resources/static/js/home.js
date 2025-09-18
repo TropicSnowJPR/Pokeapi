@@ -94,80 +94,35 @@ async function loadWebsite() {
     } catch (err) {console.error("Error:", err);}
 }
 
-
-
-
-// Rework this to much bs for a function
 async function loadTeam() {
     try {
         const text = await fetchTeamData();
         if (!(text.startsWith('{')) || text.startsWith('[')) {return}   
         const data = JSON.parse(text);
-
         const teamDiv = document.getElementById("team-div");
-        if (!teamDiv) {
-            console.error("Element with ID 'team-div' not found");
-            return;
+        if (!teamDiv) {throw Error ("Element with ID 'team-div' not found");}
+        for (let i = 0; i < 6; i++) {
+            if (data.team_members[i] !== 0) {
+                console.log(data.team_members[i])
+                const div = document.createElement("div");
+                div.className = "pokemon-div"
+                const p = document.createElement("p")
+                p.append(data.team_members[i])
+                div.appendChild(p)
+                teamDiv.appendChild(div)
+            }
         }
-
-        if (data.team_member_1 !== "0" && data.team_member_1 !== undefined) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-1";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_1 + "</p>";
-        } 
-        if (data.team_member_2 !== "0" && data.team_member_2 !== undefined) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-2";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_2 + "</p>";
-        }
-        if (data.team_member_3 !== "0" && data.team_member_3 !== undefined) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-3";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_3 + "</p>";
-        }
-        if (data.team_member_4 !== "0" && data.team_member_4 !== undefined) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-4";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_4 + "</p>";
-        }
-        if (data.team_member_5 !== "0" && data.team_member_5 !== undefined ) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-5";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_5 + "</p>";
-        }
-        if (data.team_member_6 !== "0" && data.team_member_6 !== undefined) {
-            const div = teamDiv.appendChild(document.createElement("div"));
-            div.id = "pokemon-div-6";
-            div.className = "pokemon-div"
-            div.innerHTML = "<p>" + data.team_member_6 + "</p>";
-        }
-        
-
-    } catch (err) {
-        console.error(err);
-    }
+    } catch (err) {console.error(err)}
 }
 
-
-
-function renderPokemon(data) {
+async function renderPokemon(data) {
     try {
-        document.getElementById("pokemon-official-artwork-image").src =
-            data.sprites.other["official-artwork"].front_default ||
-            "ball.png";
-
-        document.getElementById("pokemon-pixel-artwork-image").src =
-            data.sprites.front_default || 
-            "ball.png";
-
-        document.getElementById("pokemon-name").innerHTML =
-            `<h4 id="name-header">Name: ${(data.name).replace("-", " ")} / ID: ${data.id}</h4>` +
-            '<input type="button" id="add-to-team" onclick="addToTeam()" value="Add to Team">';
+        document.getElementById("pokemon-official-artwork-image").src = data.sprites.other["official-artwork"].front_default || "ball.png";
+        document.getElementById("pokemon-pixel-artwork-image").src = data.sprites.front_default || "ball.png";
+        document.getElementById("name-header").replaceWith(`Name: ${(data.name).replace("-", " ")} / ID: ${data.id}`)
+        addToTeamButton = document.createElement("button")
+        addToTeamButton.id="add-to-team"
+        document.getElementById("pokemon-name").appendChild(addToTeamButton)
 
         document.getElementById("pokemon-height").innerHTML =
             `<h4 id="height-header">Height: ${data.height}</h4>`;
@@ -248,11 +203,8 @@ function renderPokemon(data) {
 
 
 // Get moves tooltip functionality
-async function getMovesData() {
+async function getMovesData(element) {
     try {
-        let x = event.clientX;
-        let y = event.clientY;
-        const element = document.elementFromPoint(x,y)
         if (element.textContent.includes("ID"))
             return
         console.debug(element.id)
@@ -277,38 +229,6 @@ async function getMovesData() {
     } 
 }
 
-async function fetchMoves() {
-    try {
-        const raw = document.getElementById("pokemon-name").textContent.trim();
-        const name = raw.replace("Name: ", "").split("/")[0].trim();
-
-        const pokeRes = await fetchPokemonData(
-            encodeURIComponent(name)
-        );
-
-        const pokeData = await JSON.parse(pokeRes)
-        const movesList = pokeData.moves;
-
-        document.getElementById("pokemon-moves").innerHTML =
-            "<h4>Moves:</h4>" +
-            movesList
-                .map(
-                    (m) =>
-                        `<span class="move-tooltip">    • ${
-                            m.move.name.replace(/-/g, " ")
-                        }</span>`
-                )
-                .join("<br>");
-
-        document.querySelectorAll(".move-tooltip").forEach((el) => {
-            el.addEventListener("mouseover", () => { getMovesData() });
-        });
-
-    } catch (err) {
-        console.error(err);
-        alert("Error while fetching moves");
-    }
-}
 
 
 await loadWebsite();

@@ -1,9 +1,12 @@
 package com.pokeapi.papi;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.pokeapi.papi.config.ConfigManager;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -14,11 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Stream;
 
 @SpringBootApplication
 public class PokeApiApplication {
@@ -30,8 +35,15 @@ public class PokeApiApplication {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-	public static void main(String[] args) throws Exception {
+//    static class Stat {
+//        @SerializedName("base_stat")
+//        int baseStat;
+//    }
+
+
+    public static void main(String[] args) throws Exception {
 
         ConfigManager<MyConfig> cm = new ConfigManager<>(
                 Paths.get("config.yml"),
@@ -40,12 +52,18 @@ public class PokeApiApplication {
         cm.load();
         MyConfig cfg = cm.get();
 
-        PokeApiDB.resetAllCookies();
+        //PokeApiDB.resetAllCookies();
 
         SpringApplication.run(PokeApiApplication.class, args);
 
         AsciiArt();
-	}
+
+
+//        System.out.println(pokemon.name);
+//        System.out.println(pokemon.order);
+//        for(Stat stat : pokemon.stats)
+//            System.out.println(stat.baseStat);
+    }
 
     @Controller
     public class SimpleController {
@@ -56,8 +74,11 @@ public class PokeApiApplication {
             this.storage = storage;
         }
 
-        record SignupRequest(String username, String email, String password, String salt) {}
-        record LoginRequest(String usernameoremail, String password) {}
+        record SignupRequest(String username, String email, String password, String salt) {
+        }
+
+        record LoginRequest(String usernameoremail, String password) {
+        }
 
 
         // -------- HOME PAGE --------
@@ -69,10 +90,61 @@ public class PokeApiApplication {
                         .filter(cookie -> "loginCookie".equals(cookie.getName()))
                         .findAny();
                 if (loginCookie.isPresent() && PokeApiDB.checkIfCookieValid(loginCookie.get().getValue())) {
-                    return "home";
+                    return "homeempty";
                 }
             }
             return "redirect:/login";
+        }
+
+        @GetMapping("/pokemon")
+        public Object getPokemon(@RequestParam("id") String nameid, HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            Optional<Cookie> loginCookie = (cookies == null ? Stream.<Cookie>empty() : Arrays.stream(cookies))
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .findAny();
+            if (loginCookie.isEmpty() || !PokeApiDB.checkIfCookieValid(loginCookie.get().getValue())) {
+                return "redirect:/login";
+            }
+
+            Optional<String> s = PokeApiService.getPokemon(nameid);
+            if(s.isEmpty())
+                return "redirect:/";
+
+            Pokemon pokemon = gson.fromJson(s.get(), Pokemon.class);
+
+            for(Stats stats : pokemon.stats()) {
+                String name = stats.inner().getName();
+                stats.inner().setName(name.replace("-", " "));
+            }
+
+            ModelAndView modelAndView = new ModelAndView("home");
+            modelAndView.addObject("pokemon", pokemon);
+            modelAndView.addObject("generation", calGeneration(pokemon.id()));
+            return modelAndView;
+
+        }
+
+        private static final List<Pair<Integer, String>> GENERATIONS = new ArrayList<>() {{
+            add(new Pair<>(151, "gen I"));
+            add(new Pair<>(251, "gen II"));
+            add(new Pair<>(386, "gen III"));
+            add(new Pair<>(493, "gen IV"));
+            add(new Pair<>(649, "gen V"));
+            add(new Pair<>(721, "gen VI"));
+            add(new Pair<>(809, "gen VII"));
+            add(new Pair<>(905, "gen VIII"));
+            add(new Pair<>(1025, "gen IX"));
+        }};
+
+        public String calGeneration(int id) {
+            String gen = "gen X";
+            for (Pair<Integer, String> g : GENERATIONS) {
+                if (id <= g.a) {
+                    gen = g.b;
+                    break;
+                }
+            }
+            return gen;
         }
 
         // -------- LOGIN PAGE --------
@@ -165,7 +237,7 @@ public class PokeApiApplication {
         }
 
         @GetMapping("/logout")
-        public ResponseEntity<String> logout(@CookieValue("loginCookie")String loginCookie) {
+        public ResponseEntity<String> logout(@CookieValue("loginCookie") String loginCookie) {
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, ResponseCookie.from("loginCookie", loginCookie).secure(true).maxAge(0).httpOnly(true).path("/").build().toString()).body("cookieweg");
         }
 
@@ -181,7 +253,7 @@ public class PokeApiApplication {
                 } else {
                     response.put("success", true);
                 }
-            } else if (!checkForValidUsername(req.username)){
+            } else if (!checkForValidUsername(req.username)) {
                 response.put("success", false);
                 response.put("error", "Invalid Username. Username must be 3–16 characters long and may only contain letters, numbers, and underscores.");
             } else if (!checkForValidEmail(req.email)) {
@@ -223,7 +295,7 @@ public class PokeApiApplication {
 
         @GetMapping("/home/pokemon/{nameid}") //794
         public ResponseEntity<String> postPokemonHomePage(@PathVariable String nameid) {
-            return ResponseEntity.of(Optional.of(PokeApiService.getPokemon(nameid)));
+            return ResponseEntity.of(PokeApiService.getPokemon(nameid));
         }
 
         @GetMapping("/home/move/{nameid}")
@@ -232,14 +304,14 @@ public class PokeApiApplication {
         }
 
         @PostMapping("/user/{username}/uploadpfp")
-        public  String handleFileUpload(@RequestParam("file")MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username) {
+        public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username) {
             storage.save(file, username);
             return "redirect:/user/" + username;
         }
 
         @GetMapping("home/team")
         @ResponseBody
-        public Map<String, Object> getTeamPokemons(@CookieValue("loginCookie")String loginCookie) {
+        public Map<String, Object> getTeamPokemons(@CookieValue("loginCookie") String loginCookie) {
             return PokeApiDB.getPokemonsFromUser(loginCookie);
         }
 
@@ -260,7 +332,7 @@ public class PokeApiApplication {
         return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     }
 
-    public static void AsciiArt () {
+    public static void AsciiArt() {
         logger.info("========================================");
         logger.info(" mmmmmm       mm     mmmmmm     mmmmmm  ");
         logger.info(" ##\"\"\"\"#m    ####    ##\"\"\"\"#m   \"\"##\"\"  ");

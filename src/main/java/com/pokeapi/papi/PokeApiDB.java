@@ -14,9 +14,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.sql.*;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class PokeApiDB {
 
@@ -237,7 +235,7 @@ public class PokeApiDB {
 
     public static Map<String, Object> getPokemonsFromUser(String cookieValue) {
         String queryPokemons = "SELECT team_member_1, team_member_2, team_member_3, team_member_4, team_member_5, team_member_6 FROM main.teams WHERE created_by=?";
-        Map<String, Object> pokemons = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
 
         String queryUserIdFromCookie = "SELECT user_id FROM main.cookies WHERE cookie_value=?";
         Integer user_id = null;
@@ -250,52 +248,54 @@ public class PokeApiDB {
             if (rs.next()) {
                 user_id = rs.getInt("user_id");
             } else {
-                pokemons.put("success", false);
-                return pokemons;
+                result.put("success", false);
+                return result;
             }
 
         } catch (SQLException e) {
             logger.error("Error fetching user ID: " + e.getMessage());
-            pokemons.put("success", false);
-            return pokemons;
+            result.put("success", false);
+            return result;
         }
 
         if (user_id == null) {
-            pokemons.put("success", false);
-            return pokemons;
+            result.put("success", false);
+            return result;
         }
 
+        List<Integer> teamMembers = new ArrayList<>();
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryPokemons)) {
 
             stmt.setInt(1, user_id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                pokemons.put("team_member_1", rs.getInt("team_member_1"));
-                pokemons.put("team_member_2", rs.getInt("team_member_2"));
-                pokemons.put("team_member_3", rs.getInt("team_member_3"));
-                pokemons.put("team_member_4", rs.getInt("team_member_4"));
-                pokemons.put("team_member_5", rs.getInt("team_member_5"));
-                pokemons.put("team_member_6", rs.getInt("team_member_6"));
-                pokemons.put("success", true);
+                teamMembers.add(rs.getInt("team_member_1"));
+                teamMembers.add(rs.getInt("team_member_2"));
+                teamMembers.add(rs.getInt("team_member_3"));
+                teamMembers.add(rs.getInt("team_member_4"));
+                teamMembers.add(rs.getInt("team_member_5"));
+                teamMembers.add(rs.getInt("team_member_6"));
+                result.put("success", true);
             } else {
                 // No team found for user - treat as valid empty team
                 logger.info("No team found for user ID: " + user_id);
-                pokemons.put("team_member_1", 0);
-                pokemons.put("team_member_2", 0);
-                pokemons.put("team_member_3", 0);
-                pokemons.put("team_member_4", 0);
-                pokemons.put("team_member_5", 0);
-                pokemons.put("team_member_6", 0);
-                pokemons.put("success", true);
+                teamMembers.add(0);
+                teamMembers.add(0);
+                teamMembers.add(0);
+                teamMembers.add(0);
+                teamMembers.add(0);
+                teamMembers.add(0);
+                result.put("success", true);
             }
 
         } catch (SQLException e) {
             logger.error("Error fetching team: " + e.getMessage());
-            pokemons.put("success", false);
+            result.put("success", false);
         }
 
-        return pokemons;
+        result.put("team_members", teamMembers);
+        return result;
     }
 
     public static Map<String, Object> addPokemonToTeam(String nameid) {

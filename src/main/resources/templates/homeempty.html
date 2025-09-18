@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Pokédex 2.0</title>
         <link rel="icon" type="image/png" href="images/webicon.png">
-        <link rel="stylesheet" href="stylesheet/home.css">
+        <link rel="stylesheet" href="stylesheet/emptyhome.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet">
@@ -74,97 +74,68 @@
 
                             <div id="details-content">
                                 <div class="poke-div" id="pokemon-name">
-                                    <h4 id="name-header" th:text="|Name: ${pokemon.name} / ID: ${pokemon.id}|"></h4>
+                                    <h4 id="name-header">Name: / ID:</h4>
                                     <button id="add-to-team" class="add-team-button">Add to Team</button> 
                                 </div>
 
                                 <div class="poke-div" id="pokemon-images">
                                     <h4 id="image-header">Images:</h4>
                                     <img id="pokemon-pixel-artwork-image"
-                                        th:src="${pokemon.sprites.frontDefault}"
+                                        src="images/ball.png"
                                         class="pokemon-image"
                                         alt="Pixel Artwork">
                                     <img id="pokemon-official-artwork-image"
-                                        th:src="${pokemon.sprites.other.officialArtwork.frontDefault}"
+                                        src="images/ball.png"
                                         class="pokemon-image"
                                         alt="Official Artwork">
                                 </div>
 
                                 <div class="poke-div" id="pokemon-generation">
-                                    <h4 id="generation-header" th:text="|Generation: ${generation}|"></h4>
+                                    <h4 id="generation-header">Generation:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-height">
-                                    <h4 id="height-header" th:text="|Height: ${pokemon.height}|"></h4>
+                                    <h4 id="height-header">Height:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-weight">
-                                    <h4 id="weight-header" th:text="|Weight: ${pokemon.weight}|"></h4>
+                                    <h4 id="weight-header">Weight:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-types">
-                                    <h4 id="types-header">
-                                        Types:
-                                        <th:block th:each="type : ${pokemon.types}">
-                                            <span th:text="${type.inner.name}"></span>
-                                        </th:block>
-                                    </h4>
+                                    <h4 id="types-header">Types:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-abilities">
-                                    <h4 id="abilities-header">
-                                        Abilities:
-                                        <th:block th:each="ability: ${pokemon.abilities}">
-                                            <span th:text="${ability.inner.name}"></span>
-                                        </th:block>
-                                    </h4>
+                                    <h4 id="abilities-header">Abilities:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-stats">
-                                    <h4 id="stats-header">
-                                        Stats:
-                                        <table>
-                                            <tr th:each="stat : ${pokemon.stats}">
-                                                <td th:text="${stat.inner.name}">Test</td>
-                                                <td th:text="${stat.baseStat}"></td>
-                                            </tr>
-                                        </table>
-                                    </h4>
+                                    <h4 id="stats-header">Stats:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-forms">
-                                    <h4 id="forms-header">
-                                        Forms:
-                                        <th:block th:each="form: ${pokemon.forms}">
-                                            <span th:text="${form.name}"></span>
-                                        </th:block>
-                                    </h4>
+                                    <h4 id="forms-header">Forms:</h4>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-cries">
                                     <h4 id="cries-header">Cries:</h4>
 
-                                    <h4 id="latest-cry-header">Latest Cry:</h4>
+                                    <h4 id="latest-cry-header">    • Latest Cry:</h4>
                                     <audio id="latest-cry" class="audio" controls>
-                                        <source th:src="${pokemon.cries.latest}" type="audio/ogg">
+                                        <source src="" type="audio/ogg">
                                         Your browser does not support the audio element.
                                     </audio>
 
-                                    <h4 id="legacy-cry-header">Legacy Cry:</h4>
+                                    <h4 id="legacy-cry-header">    • Legacy Cry:</h4>
                                     <audio id="legacy-cry" class="audio" controls>
-                                        <source th:src="${pokemon.cries.legacy}" type="audio/ogg">
+                                        <source src="" type="audio/ogg">
                                         Your browser does not support the audio element.
                                     </audio>
                                 </div>
 
                                 <div class="poke-div" id="pokemon-moves">
-                                    <h4 id="move-header">
-                                        Moves:
-                                        <th:block th:each="move: ${pokemon.moves}">
-                                            <br>
-                                            <span th:text="${move.inner.name}"></span>
-                                        </th:block>
-                                    </h4>
+                                    <h4 id="move-header">Moves:</h4>
                                 </div>
                             </div>
                         </div>
