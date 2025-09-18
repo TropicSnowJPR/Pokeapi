@@ -31,7 +31,7 @@ document.getElementById("form-submit-button").addEventListener("click", setPFP)
 
 async function getUsername() {
     try {
-        const response = await fetch("/getusername", {
+        const response = await fetch("/getuserdata", {
             credentials: "include"
         });
         const data = await response.json();

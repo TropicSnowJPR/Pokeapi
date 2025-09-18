@@ -10,12 +10,7 @@ document.getElementById("user-name").addEventListener("click", async () => {
 
 document.getElementById("random-button").addEventListener("click", async () => {
     const randomId = Math.floor(Math.random() * 1025) + 1;
-    try {
-        const text = await fetchPokemonData(randomId);
-        if ((!(text.startsWith('{')) || text.startsWith('['))) {throw new Error("Invalid or broken JSON.")}
-        const data = JSON.parse(text);
-        renderPokemon(data);
-    } catch (err) {console.error(err);}
+    window.location.href = `/pokemon?id=${randomId}`;
 });
 
 document.getElementById("search-button").addEventListener("click", search)
@@ -23,13 +18,7 @@ document.getElementById("search").addEventListener('change', search)
 async function search() {
     const nameid = document.getElementById("search").value.trim();
     if (!nameid) return;
-    try {
-        const text = await fetchPokemonData(nameid);
-        if (text.includes("Not Found")) {alert("Pokemon Not Found"); throw new Error("Pokemon not found.")}
-        if (!(text.startsWith('{')) || text.startsWith('[')) {throw new Error("Invalid or broken JSON.")}   
-        const data = JSON.parse(text);
-        renderPokemon(data);
-    } catch (err) {console.error(err);}
+    window.location.href = `/pokemon?id=${nameid}`;
 };
 
 document.getElementById("user-logout").addEventListener("click", async () => {
@@ -42,15 +31,6 @@ document.getElementById("user-logout").addEventListener("click", async () => {
         console.error(err)
     }
 })
-
-async function fetchPokemonData(nameid) {
-    try {
-        if (fetchPokemonLock) {return}   
-        fetchPokemonLock = true
-        const res = await fetch("/home/pokemon/" + nameid)
-        return res.text()
-    } finally {fetchPokemonLock = false}
-}
 
 async function fetchMoveData(nameid) {
     try {
@@ -114,93 +94,6 @@ async function loadTeam() {
         }
     } catch (err) {console.error(err)}
 }
-
-async function renderPokemon(data) {
-    try {
-        document.getElementById("pokemon-official-artwork-image").src = data.sprites.other["official-artwork"].front_default || "ball.png";
-        document.getElementById("pokemon-pixel-artwork-image").src = data.sprites.front_default || "ball.png";
-        document.getElementById("name-header").replaceWith(`Name: ${(data.name).replace("-", " ")} / ID: ${data.id}`)
-        addToTeamButton = document.createElement("button")
-        addToTeamButton.id="add-to-team"
-        document.getElementById("pokemon-name").appendChild(addToTeamButton)
-
-        document.getElementById("pokemon-height").innerHTML =
-            `<h4 id="height-header">Height: ${data.height}</h4>`;
-
-        document.getElementById("pokemon-weight").innerHTML =
-            `<h4 id="weight-header">Weight: ${data.weight}</h4>`;
-
-        document.getElementById("pokemon-types").innerHTML =
-            `<h4 id="types-header">Types: ${data.types
-                .map((t) => t.type.name)
-                .join(", ")}</h4>`;
-
-        const generations = [
-            { max: 151, name: "Gen I" },
-            { max: 251, name: "Gen II" },
-            { max: 386, name: "Gen III" },
-            { max: 493, name: "Gen IV" },
-            { max: 649, name: "Gen V" },
-            { max: 721, name: "Gen VI" },
-            { max: 809, name: "Gen VII" },
-            { max: 905, name: "Gen VIII" },
-            { max: 1025, name: "Gen IX"}
-        ];
-
-        let gen = "Gen X";
-        for (const g of generations) {
-            if (data.id <= g.max) {
-                gen = g.name;
-                break;
-            }
-        }
-
-        document.getElementById("pokemon-generation").innerHTML =
-            `<h4 id="generation-header">Generation: ${gen}</h4>`;
-
-        document.getElementById("pokemon-stats").innerHTML =
-            "<h4>Stats: </h4>" +
-            data.stats
-                .map(
-                    (s) =>
-                        `<span class="stats-tooltip">    • ${
-                            s.stat.name.replace(/-/g, " ")
-                        }: ${s.base_stat}</span>`
-                )
-                .join("<br>");
-
-        document.getElementById("pokemon-abilities").innerHTML =
-            `<h4 id="abilities-header">Abilities: ${
-                capitalizeFirstLetter(
-                    data.abilities.map((a) => a.ability.name).join(", ")
-            )}</h4>`;
-
-        document.getElementById("pokemon-forms").innerHTML =
-            `<h4 id="forms-header">Forms: ${data.forms
-                .map((f) => f.name)
-                .join(", ")}</h4>`;
-        
-
-        //show()
-        document.getElementById("latest-cry").src =
-            data.cries.latest || "./audio/default.ogg";
-        document.getElementById("legacy-cry").src =
-            data.cries.legacy || "./audio/default.ogg";
-
-        document.getElementById("latest-cry").volume = 0.2;
-        document.getElementById("legacy-cry").volume = 0.2;
-
-        fetchMoves();
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-
-
-
-
-
 
 // Get moves tooltip functionality
 async function getMovesData(element) {
