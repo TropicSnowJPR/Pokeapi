@@ -39,32 +39,45 @@ public class PokeApiDB {
 
 
 
-    // User creation
-    public static String createUser(String Username, String Email, String HashedPassword, String Salt) throws IOException {
-        String insertSQL = "INSERT INTO main.users (username, email, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)";
+    // --------------- //
+    //      USERS      //
+    // --------------- //
 
-        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
-             PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
 
-            pstmt.setString(1, Username);
-            pstmt.setString(2, Email);
-            pstmt.setString(3, HashedPassword);
-            pstmt.setString(4, Salt);
-            pstmt.setString(5, "user");
 
-            pstmt.executeUpdate();
-
-        } catch (SQLException e) {
-            if (String.valueOf(e).contains("Detail: Schlüssel »(username)=") && String.valueOf(e).contains("« existiert bereits.")) {
-                return "Username already in use";
-            } else if (String.valueOf(e).contains("Detail: Schlüssel »(email)") && String.valueOf(e).contains("« existiert bereits.")) {
-                return "Email already in use";
-            } else {
-                return "Unknown error";
-            }
-        }
-        return "null";
+    public static void checkLogin(String usernameOrEmail, String inputPassword) {
+        Users users = new Users();
     }
+
+
+
+
+    // User creation
+//    public static String createUser(String Username, String Email, String HashedPassword, String Salt) throws IOException {
+//        String insertSQL = "INSERT INTO main.users (username, email, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)";
+//
+//        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
+//             PreparedStatement pstmt = conn.prepareStatement(insertSQL)) {
+//
+//            pstmt.setString(1, Username);
+//            pstmt.setString(2, Email);
+//            pstmt.setString(3, HashedPassword);
+//            pstmt.setString(4, Salt);
+//            pstmt.setString(5, "user");
+//
+//            pstmt.executeUpdate();
+//
+//        } catch (SQLException e) {
+//            if (String.valueOf(e).contains("Detail: Schlüssel »(username)=") && String.valueOf(e).contains("« existiert bereits.")) {
+//                return "Username already in use";
+//            } else if (String.valueOf(e).contains("Detail: Schlüssel »(email)") && String.valueOf(e).contains("« existiert bereits.")) {
+//                return "Email already in use";
+//            } else {
+//                return "Unknown error";
+//            }
+//        }
+//        return "null";
+//    }
 
     public static String deleteUser(String Username, String Password) {
         return null;
@@ -84,29 +97,29 @@ public class PokeApiDB {
         }
     }
 
-    public static boolean checkLogin(String usernameOrEmail, String inputPassword) {
-        String query = "SELECT password_hash, salt FROM main.users WHERE username=? OR email=?";
-
-        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-
-            pstmt.setString(1, usernameOrEmail);
-            pstmt.setString(2, usernameOrEmail);
-
-            ResultSet rs = pstmt.executeQuery();
-            if (rs.next()) {
-                String storedHash = rs.getString("password_hash");
-                String storedSalt = rs.getString("salt");
-                String hashedInput = hashPassword(inputPassword, storedSalt);
-                return storedHash.equals(hashedInput);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
+//    public static boolean checkLogin(String usernameOrEmail, String inputPassword) {
+//        String query = "SELECT password_hash, salt FROM main.users WHERE username=? OR email=?";
+//
+//        try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
+//             PreparedStatement pstmt = conn.prepareStatement(query)) {
+//
+//
+//            pstmt.setString(1, usernameOrEmail);
+//            pstmt.setString(2, usernameOrEmail);
+//
+//            ResultSet rs = pstmt.executeQuery();
+//            if (rs.next()) {
+//                String storedHash = rs.getString("password_hash");
+//                String storedSalt = rs.getString("salt");
+//                String hashedInput = hashPassword(inputPassword, storedSalt);
+//                return storedHash.equals(hashedInput);
+//            }
+//
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return false;
+//    }
 
     private static final int SALT_LENGTH = 16;
     private static final int ITERATIONS = 65536;

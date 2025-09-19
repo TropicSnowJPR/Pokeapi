@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.http.HttpHeaders;
@@ -25,7 +26,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.pokeapi.papi")
 public class PokeApiApplication {
 
     public static class MyConfig {
@@ -33,6 +34,9 @@ public class PokeApiApplication {
         public String username = "defaultuser";
         public String url = "localhost";
     }
+
+    @Autowired
+    private UsersRepository usersRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -184,8 +188,22 @@ public class PokeApiApplication {
                         .filter(cookie -> "loginCookie".equals(cookie.getName()))
                         .findAny();
                 if (loginCookie.isPresent() && PokeApiDB.checkIfCookieValid(loginCookie.get().getValue())) {
+                    return "user";
+                }
+            }
+            return "redirect:/login";
+        }
+
+        @GetMapping("user")
+        public String getPersonalUserPage(HttpServletRequest request, @PathVariable String username) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                        .findAny();
+                if (loginCookie.isPresent() && PokeApiDB.checkIfCookieValid(loginCookie.get().getValue())) {
                     if (Objects.equals(username, PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()))) {
-                        return "user";
+                        return "personaluser";
                     } else {
                         return "redirect:/user/" + PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue());
                     }
@@ -193,6 +211,7 @@ public class PokeApiApplication {
             }
             return "redirect:/login";
         }
+
 
         // -------- ERROR PAGE --------
         @GetMapping("/error")
@@ -244,12 +263,12 @@ public class PokeApiApplication {
         public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) throws IOException {
             Map<String, Object> response = new HashMap<>();
             if (checkForValidUsername(req.username()) && checkForValidEmail(req.email())) {
-                String error = PokeApiDB.createUser(req.username(), req.email(), req.password(), req.salt());
-                if (!"null".equals(error)) {
+                try {
+                    PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
+                } catch (Exception err) {
                     response.put("success", false);
-                    response.put("error", error);
-                } else {
-                    response.put("success", true);
+                    response.put("error", err);
+                    return response;
                 }
             } else if (!checkForValidUsername(req.username)) {
                 response.put("success", false);
@@ -269,7 +288,9 @@ public class PokeApiApplication {
         ) {
             Map<String, Object> respMap = new HashMap<>();
 
-            boolean ok = PokeApiDB.checkLogin(req.usernameoremail(), req.password());
+//            boolean ok = PokeApiDB.checkLogin(req.usernameoremail(), req.password());
+            boolean ok;
+            ok = true;
             if (!ok) {
                 respMap.put("success", false);
             } else {
