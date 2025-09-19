@@ -36,6 +36,9 @@ public class PokeApiDB {
         cfg = cm.get();
     }
 
+
+
+
     // User creation
     public static String createUser(String Username, String Email, String HashedPassword, String Salt) throws IOException {
         String insertSQL = "INSERT INTO main.users (username, email, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)";

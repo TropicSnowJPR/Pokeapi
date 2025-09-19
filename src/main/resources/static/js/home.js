@@ -54,22 +54,8 @@ async function fetchTeamData() {
     }
 }
 
-async function fetchUserData(value) {
-    try {
-        const res = await fetch("/getuserdata", {credentials: "include"});
-        const data = await res.json();
-        if (!data.loggedIn) {location.href = "/login";} else {
-            if (value === "username") {return data.username}
-            if (value === "pfpurl") {return data.pfplink}
-            return null
-        }
-    } catch (err) {console.error("Error:", err);}
-}
-
 async function loadWebsite() {
     try {
-        document.getElementById("username").innerHTML = await fetchUserData("username");
-        document.getElementById("user-pfp-img").src = await fetchUserData("pfpurl");
         await loadTeam()
     } catch (err) {console.error("Error:", err);}
 }

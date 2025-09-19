@@ -23,9 +23,9 @@
                 <div class="right_header">
                     <div class="user-name" id="user-name">
                         <div class="avatar">
-                            <img src="images/user.svg" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
+                            <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
                         </div>
-                        <p id="username"></p>
+                        <p id="username" th:text="${name}"></p>
                     </div>
                     <div class="user-logout" id="user-logout">
                         <img src="images/logout.svg" class="user-logout-img" alt="user-pfp">

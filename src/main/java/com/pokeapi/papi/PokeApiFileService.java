@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -45,6 +47,7 @@ public class PokeApiFileService {
             logger.error("Failed to store empty file.");
         }
         try (InputStream in = file.getInputStream()) {
+            BufferedImage image = ImageIO.read(in);
             Path userroot = Path.of(root.toString() + '\\' + username);
             Files.createDirectories(userroot);
             String ext = "";
@@ -52,11 +55,12 @@ public class PokeApiFileService {
             if (original != null && original.contains(".")) {
                 ext = original.substring(original.lastIndexOf('.'));
             }
-            if ((ext.equals(".png")) || (ext.equals(".jpg"))) {
-                Files.copy(in, userroot.resolve("pfp" + ".png"), StandardCopyOption.REPLACE_EXISTING);
+            if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".gif") || ext.equals(".bmp") || ext.equals(".webp") || ext.equals(".tiff") || ext.equals(".png")) {
+                File outputFile = new File(userroot.toFile(), "pfp.png");
+                ImageIO.write(image, "png", outputFile);
+                logger.info("New pfp set for {}. Saved in Path: {}", username, userroot);
             } else {
-                logger.warn("Suspicious file detected and denied!");
-            }
+                logger.warn("Suspicious file detected and denied! With {} file extension!", ext); }
         } catch (Exception e) {
             logger.error("Failed to store file: {}", e.getMessage(), e);
         }

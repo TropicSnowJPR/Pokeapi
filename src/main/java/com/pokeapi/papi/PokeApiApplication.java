@@ -37,12 +37,6 @@ public class PokeApiApplication {
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-//    static class Stat {
-//        @SerializedName("base_stat")
-//        int baseStat;
-//    }
-
-
     public static void main(String[] args) throws Exception {
 
         ConfigManager<MyConfig> cm = new ConfigManager<>(
@@ -57,12 +51,6 @@ public class PokeApiApplication {
         SpringApplication.run(PokeApiApplication.class, args);
 
         AsciiArt();
-
-
-//        System.out.println(pokemon.name);
-//        System.out.println(pokemon.order);
-//        for(Stat stat : pokemon.stats)
-//            System.out.println(stat.baseStat);
     }
 
     @Controller
@@ -81,16 +69,21 @@ public class PokeApiApplication {
         }
 
 
+
+
         // -------- HOME PAGE --------
         @GetMapping("/")
-        public String getHomePage(HttpServletRequest request) {
+        public Object getHomePage(HttpServletRequest request) {
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
                 Optional<Cookie> loginCookie = Arrays.stream(cookies)
                         .filter(cookie -> "loginCookie".equals(cookie.getName()))
                         .findAny();
                 if (loginCookie.isPresent() && PokeApiDB.checkIfCookieValid(loginCookie.get().getValue())) {
-                    return "homeempty";
+                    ModelAndView modelAndView = new ModelAndView("homeempty");
+                    modelAndView.addObject("name", PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()));
+                    modelAndView.addObject("pfpurl", "/papipfps/" + PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()) + "/pfp.png");
+                    return modelAndView;
                 }
             }
             return "redirect:/login";
@@ -118,25 +111,28 @@ public class PokeApiApplication {
             }
 
             ModelAndView modelAndView = new ModelAndView("home");
+            modelAndView.addObject("name", PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()));
+            modelAndView.addObject("pfpurl", "/papipfps/" + PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()) + "/pfp.png");
             modelAndView.addObject("pokemon", pokemon);
             modelAndView.addObject("generation", calGeneration(pokemon.id()));
             return modelAndView;
 
         }
 
-        private static final List<Pair<Integer, String>> GENERATIONS = new ArrayList<>() {{
-            add(new Pair<>(151, "gen I"));
-            add(new Pair<>(251, "gen II"));
-            add(new Pair<>(386, "gen III"));
-            add(new Pair<>(493, "gen IV"));
-            add(new Pair<>(649, "gen V"));
-            add(new Pair<>(721, "gen VI"));
-            add(new Pair<>(809, "gen VII"));
-            add(new Pair<>(905, "gen VIII"));
-            add(new Pair<>(1025, "gen IX"));
-        }};
-
         public String calGeneration(int id) {
+
+            final List<Pair<Integer, String>> GENERATIONS = new ArrayList<>() {{
+                add(new Pair<>(151, "gen I"));
+                add(new Pair<>(251, "gen II"));
+                add(new Pair<>(386, "gen III"));
+                add(new Pair<>(493, "gen IV"));
+                add(new Pair<>(649, "gen V"));
+                add(new Pair<>(721, "gen VI"));
+                add(new Pair<>(809, "gen VII"));
+                add(new Pair<>(905, "gen VIII"));
+                add(new Pair<>(1025, "gen IX"));
+            }};
+
             String gen = "gen X";
             for (Pair<Integer, String> g : GENERATIONS) {
                 if (id <= g.a) {
@@ -146,6 +142,8 @@ public class PokeApiApplication {
             }
             return gen;
         }
+
+
 
         // -------- LOGIN PAGE --------
         @GetMapping("/login")
@@ -304,9 +302,30 @@ public class PokeApiApplication {
         }
 
         @PostMapping("/user/{username}/uploadpfp")
-        public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username) {
-            storage.save(file, username);
-            return "redirect:/user/" + username;
+        public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username, HttpServletRequest request) {
+            Map<String, Object> response = new HashMap<>();
+
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return "error";
+            }
+
+            Optional<String> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findAny();
+
+            if (loginCookie.isEmpty()) {
+                return "error";
+            }
+
+            String cookieUsername = PokeApiDB.getUsernameFromCookie(loginCookie.get());
+            if (cookieUsername.equals(username)){
+                storage.save(file, username);
+                return "redirect:/user/" + username;
+            }
+
+            return "error";
         }
 
         @GetMapping("home/team")
