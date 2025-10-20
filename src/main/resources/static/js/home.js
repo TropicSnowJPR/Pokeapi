@@ -4,7 +4,7 @@ var fetchTeamLock = false
 
 document.getElementById("user-name").addEventListener("click", async () => {
     try {
-        location.href = ("/user/" + await fetchUserData("username"));
+        location.href = "/user";
     } catch (err) {console.error(err);}
 })
 

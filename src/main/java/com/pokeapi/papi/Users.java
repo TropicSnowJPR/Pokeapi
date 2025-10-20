@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "Users")
+@Table(name = "Users", schema = "main")
 @Setter
 @Getter
 public class Users {
@@ -16,6 +16,6 @@ public class Users {
     private String email;
     private String password;
     private String salt;
-//    private String role;
-//    private Date created;
+//    private String role;  // WILL BE REMOVED
+//    private Date created;  // WILL BE REMOVED
 }
