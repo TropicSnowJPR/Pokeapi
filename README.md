@@ -37,7 +37,7 @@ This is a **Java-based web application** that provides an API for interacting wi
 ## 📦 Features
 
 - ✅ **User registration and login**
-- 🔒 **Secure password storage using PBKDF2**
+- 🔒 **Secure password storage**
 - 🍪 **Cookie-based session management**
 - 📸 **File upload and storage for user profile pictures**
 - 🐉 **Integration with the Pokémon API (pokeapi.co)** for fetching Pokémon and move data

@@ -170,7 +170,7 @@ public class PokeApiDB {
             return null;
         }
 
-        String insertCookie = "INSERT INTO main.cookies (user_id, cookie_value, expires_at) VALUES (?, ?, ?)";
+        String insertCookie = "INSERT INTO main.cookies (uid, value, expires_at) VALUES (?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(insertCookie)) {
 
@@ -188,7 +188,7 @@ public class PokeApiDB {
     }
 
     public static boolean checkIfCookieValid(String cookieValue) {
-        String checkIfCookieValid = "SELECT EXISTS ( SELECT 1 FROM main.cookies WHERE cookie_value=? )";
+        String checkIfCookieValid = "SELECT EXISTS ( SELECT 1 FROM main.cookies WHERE value=? )";
 
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(checkIfCookieValid)) {
@@ -210,7 +210,7 @@ public class PokeApiDB {
     }
 
     public static String getUsernameFromCookie(String cookieValue) {
-        String queryUserIdFromCookie = "SELECT user_id FROM main.cookies WHERE cookie_value=?";
+        String queryUserIdFromCookie = "SELECT uid FROM main.cookies WHERE value=?";
         Integer userId = null;
 
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
@@ -219,7 +219,7 @@ public class PokeApiDB {
             stmt.setString(1, cookieValue);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                userId = rs.getInt("user_id");
+                userId = rs.getInt("uid");
             } else {
                 return "invalid cookie";
             }
@@ -253,8 +253,8 @@ public class PokeApiDB {
         String queryPokemons = "SELECT team_member_1, team_member_2, team_member_3, team_member_4, team_member_5, team_member_6 FROM main.teams WHERE created_by=?";
         Map<String, Object> result = new HashMap<>();
 
-        String queryUserIdFromCookie = "SELECT user_id FROM main.cookies WHERE cookie_value=?";
-        Integer user_id = null;
+        String queryUserIdFromCookie = "SELECT uid FROM main.cookies WHERE value=?";
+        Integer uid = null;
 
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryUserIdFromCookie)) {
@@ -262,7 +262,7 @@ public class PokeApiDB {
             stmt.setString(1, cookieValue);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                user_id = rs.getInt("user_id");
+                uid = rs.getInt("uid");
             } else {
                 result.put("success", false);
                 return result;
@@ -274,7 +274,7 @@ public class PokeApiDB {
             return result;
         }
 
-        if (user_id == null) {
+        if (uid == null) {
             result.put("success", false);
             return result;
         }
@@ -283,7 +283,7 @@ public class PokeApiDB {
         try (Connection conn = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
              PreparedStatement stmt = conn.prepareStatement(queryPokemons)) {
 
-            stmt.setInt(1, user_id);
+            stmt.setInt(1, uid);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 teamMembers.add(rs.getInt("team_member_1"));
@@ -295,7 +295,7 @@ public class PokeApiDB {
                 result.put("success", true);
             } else {
                 // No team found for user - treat as valid empty team
-                logger.info("No team found for user ID: " + user_id);
+                logger.info("No team found for user ID: " + uid);
                 teamMembers.add(0);
                 teamMembers.add(0);
                 teamMembers.add(0);

@@ -57,7 +57,15 @@ public class PokeApiApplication {
 
         SpringApplication.run(PokeApiApplication.class, args);
 
-        AsciiArt();
+        logger.info("========================================");
+        logger.info(" mmmmmm       mm     mmmmmm     mmmmmm  ");
+        logger.info(" ##\"\"\"\"#m    ####    ##\"\"\"\"#m   \"\"##\"\"  ");
+        logger.info(" ##    ##    ####    ##    ##     ##    ");
+        logger.info(" ######\"    ##  ##   ######\"      ##    ");
+        logger.info(" ##         ######   ##           ##    ");
+        logger.info(" ##        m##  ##m  ##         mm##mm  ");
+        logger.info(" \"\"        \"\"    \"\"  \"\"         \"\"\"\"\"\"  ");
+        logger.info("========================================");
     }
 
     @Controller
@@ -88,8 +96,8 @@ public class PokeApiApplication {
                         .findAny();
                 if (loginCookie.isPresent() && PokeApiDBService.validateCookie(cookiesRepository, loginCookie.get().getValue())) {
                     ModelAndView modelAndView = new ModelAndView("homeempty");
-                    modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))));
-                    modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))) + "/pfp.png");
+                    modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))));
+                    modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))) + "/pfp.png");
                     return modelAndView;
                 }
             }
@@ -118,8 +126,8 @@ public class PokeApiApplication {
             }
 
             ModelAndView modelAndView = new ModelAndView("home");
-            modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))));
-            modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))) + "/pfp.png");
+            modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))));
+            modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))) + "/pfp.png");
             modelAndView.addObject("pokemon", pokemon);
             modelAndView.addObject("generation", calGeneration(pokemon.id()));
             return modelAndView;
@@ -153,7 +161,7 @@ public class PokeApiApplication {
 
 
         // -------- LOGIN PAGE --------
-        @GetMapping("/login") //TODO: the redirect happens even if password not there!!!
+        @GetMapping("/login")
         public String getLoginPage(HttpServletRequest request) {
             Cookie[] cookies = request.getCookies();
             if (cookies != null) {
@@ -166,6 +174,56 @@ public class PokeApiApplication {
             }
             return "login";
         }
+
+        @PostMapping("/login/submit")
+        @ResponseBody
+        public Map<String, Object> postLoginPage(
+                @RequestBody LoginRequest req,
+                HttpServletResponse response
+        ) {
+            Map<String, Object> respMap = new HashMap<>();
+
+            boolean ok = PokeApiDBService.validatePassword(usersRepository, req.usernameoremail(), req.password()); // PASSWORD NEED TO BE HASHED CLIENT SIDE <<< CLIENT SIDE NOT IMPLEMENTED YET
+
+            if (!ok) {
+                respMap.put("success", false);
+            } else {
+                respMap.put("success", true);
+                logger.info(req.usernameoremail());
+                Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.usernameoremail());
+                logger.info("User id: " + uid);
+                String cookieValue = PokeApiDBService.createCookie(usersRepository, cookiesRepository, uid);
+                logger.info("Cookie value: " + cookieValue);
+                if(cookieValue == null || cookieValue.isEmpty()) {logger.error("no cookie given");}
+
+                Cookie cookie = new Cookie("loginCookie", cookieValue);
+                cookie.setHttpOnly(true);
+                cookie.setSecure(true);
+                cookie.setPath("/");
+                cookie.setMaxAge(60 * 60 * 24 * 7);
+
+                response.addCookie(cookie);
+
+                respMap.put("loginCookie", cookieValue);
+            }
+            return respMap;
+        }
+
+        @GetMapping("/login/salt/{usernameoremail}")
+        @ResponseBody
+        public Map<String, Object> getSalt(@PathVariable String usernameoremail) {
+            Map<String, Object> respMap = new HashMap<>();
+            String salt = PokeApiDBService.getSaltByUsernameOrEmail(usersRepository, usernameoremail);
+            if(salt == null || salt.isEmpty()) {
+                respMap.put("success", false);
+            } else {
+                respMap.put("success", true);
+                respMap.put("salt", salt);
+            }
+            return respMap;
+        }
+
+
 
         // -------- SIGNUP PAGE --------
         @GetMapping("/signup")
@@ -180,88 +238,6 @@ public class PokeApiApplication {
                 }
             }
             return "signup";
-        }
-
-        // -------- USER PAGE --------
-        @GetMapping("/user")
-        public Object getUserPage(HttpServletRequest request) {
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                Optional<Cookie> loginCookie = Arrays.stream(cookies)
-                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
-                        .findAny();
-                if (loginCookie.isPresent() && PokeApiDBService.validateCookie(cookiesRepository, loginCookie.get().getValue())) {
-                    ModelAndView modelAndView = new ModelAndView("user");
-                    modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))));
-                    modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get()))) + "/pfp.png");
-                    return modelAndView;
-                }
-            }
-            return "redirect:/login";
-        }
-
-//        @GetMapping("user")
-//        public String getPersonalUserPage(HttpServletRequest request, @PathVariable String username) {
-//            Cookie[] cookies = request.getCookies();
-//            if (cookies != null) {
-//                Optional<Cookie> loginCookie = Arrays.stream(cookies)
-//                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
-//                        .findAny();
-//                if (loginCookie.isPresent() && PokeApiDBService.validateCookie(cookiesRepository, loginCookie.get().getValue())) {
-//                    if (Objects.equals(username, PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue()))) {
-//                        return "personaluser";
-//                    } else {
-//                        return "redirect:/user/" + PokeApiDB.getUsernameFromCookie(loginCookie.get().getValue());
-//                    }
-//                }
-//            }
-//            return "redirect:/login";
-//        }
-
-
-        // -------- ERROR PAGE --------
-        @GetMapping("/error")
-        public String errorPage() {
-            return "error";
-        }
-
-        // -------- APIs --------
-        @GetMapping("/getuserdata")
-        public ResponseEntity<Map<String, Object>> getUsernameFromCookie(HttpServletRequest request) {
-            Map<String, Object> response = new HashMap<>();
-
-            Cookie[] cookies = request.getCookies();
-            if (cookies == null) {
-                response.put("loggedIn", false);
-                return ResponseEntity.ok(response);
-            }
-
-            Optional<String> loginCookie = Arrays.stream(cookies)
-                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findAny();
-
-            if (loginCookie.isEmpty()) {
-                response.put("loggedIn", false);
-                return ResponseEntity.ok(response);
-            }
-
-            String username = String.valueOf(PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, loginCookie.get()));
-
-            if (username.matches("invalid cookie")) {
-                response.put("loggedIn", false);
-            } else {
-                response.put("loggedIn", true);
-                response.put("username", username);
-                response.put("pfplink", "https://192.168.161.22:8081/papipfps/" + username + "/pfp.png");
-            }
-
-            return ResponseEntity.ok(response);
-        }
-
-        @GetMapping("/logout")
-        public ResponseEntity<String> logout(@CookieValue("loginCookie") String loginCookie) {
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, ResponseCookie.from("loginCookie", loginCookie).secure(true).maxAge(0).httpOnly(true).path("/").build().toString()).body("cookieweg");
         }
 
         @PostMapping("/signup/submit")
@@ -286,41 +262,45 @@ public class PokeApiApplication {
             return response;
         }
 
-        @PostMapping("/login/submit") //TODO: the redirect happens even if password not there
-        @ResponseBody
-        public Map<String, Object> postLoginPage(
-                @RequestBody LoginRequest req,
-                HttpServletResponse response
-        ) {
-            Map<String, Object> respMap = new HashMap<>();
 
-            //boolean ok = PokeApiDB.checkLogin(req.usernameoremail(), req.password());
-            boolean ok = true;
-            if (!ok) {
-                respMap.put("success", false);
-            } else {
-                respMap.put("success", true);
-                logger.info(req.usernameoremail());
-                Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.usernameoremail());
-                logger.info("User id: " + uid);
-                String cookieValue = PokeApiDBService.createCookie(usersRepository, cookiesRepository, uid);
-                logger.info("Cookie value: " + cookieValue);
-                if(cookieValue == null || cookieValue.isEmpty()) {logger.error("no cookie given");}
 
-                Cookie cookie = new Cookie("loginCookie", cookieValue);
-                cookie.setHttpOnly(true);
-                cookie.setSecure(true);
-                cookie.setPath("/");
-                cookie.setMaxAge(60 * 60 * 24 * 7);
-
-                response.addCookie(cookie);
-
-                respMap.put("loginCookie", cookieValue);
+        // -------- USER PAGE --------
+        @GetMapping("/user")
+        public Object getUserPage(HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                        .findAny();
+                if (loginCookie.isPresent() && PokeApiDBService.validateCookie(cookiesRepository, loginCookie.get().getValue())) {
+                    ModelAndView modelAndView = new ModelAndView("user");
+                    modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))));
+                    modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))) + "/pfp.png");
+                    return modelAndView;
+                }
             }
-
-            return respMap;
+            return "redirect:/login";
         }
 
+
+
+        // -------- ERROR PAGE --------
+        @GetMapping("/error")
+        public String errorPage() {
+            return "error";
+        }
+
+
+
+        // -------- LOGOUT PAGE --------
+        @GetMapping("/logout")
+        public ResponseEntity<String> logout(@CookieValue("loginCookie") String loginCookie) {
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, ResponseCookie.from("loginCookie", loginCookie).secure(true).maxAge(0).httpOnly(true).path("/").build().toString()).body("cookieweg");
+        }
+
+
+
+        // -------- API PAGES --------
         @GetMapping("/home/pokemon/{nameid}") //794
         public ResponseEntity<String> postPokemonHomePage(@PathVariable String nameid) {
             return ResponseEntity.of(PokeApiService.getPokemon(nameid));
@@ -329,33 +309,6 @@ public class PokeApiApplication {
         @GetMapping("/home/move/{nameid}")
         public ResponseEntity<String> postMoveHomePage(@PathVariable String nameid) {
             return ResponseEntity.of(Optional.of(PokeApiService.getMove(nameid)));
-        }
-
-        @PostMapping("/user/{username}/uploadpfp")
-        public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username, HttpServletRequest request) {
-            Map<String, Object> response = new HashMap<>();
-
-            Cookie[] cookies = request.getCookies();
-            if (cookies == null) {
-                return "error";
-            }
-
-            Optional<String> loginCookie = Arrays.stream(cookies)
-                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findAny();
-
-            if (loginCookie.isEmpty()) {
-                return "error";
-            }
-
-            String cookieUsername = PokeApiDB.getUsernameFromCookie(loginCookie.get());
-            if (cookieUsername.equals(username)){
-                storage.save(file, username);
-                return "redirect:/user/" + username;
-            }
-
-            return "error";
         }
 
         @GetMapping("home/team")
@@ -368,6 +321,27 @@ public class PokeApiApplication {
         public Map<String, Object> addPokemonToTeam(@PathVariable String nameid) {
             return PokeApiDB.addPokemonToTeam(nameid);
         }
+
+
+
+        // -------- UPLOAD PFP PAGE --------
+        @PostMapping("/user/{username}/uploadpfp")
+        public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, @PathVariable String username, HttpServletRequest request) {
+            Map<String, Object> response = new HashMap<>();
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) { return "error"; }
+            Optional<String> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findAny();
+            if (loginCookie.isEmpty()) { return "error"; }
+            String cookieUsername = PokeApiDB.getUsernameFromCookie(loginCookie.get());
+            if (cookieUsername.equals(username)){
+                storage.save(file, username);
+                return "redirect:/user/" + username;
+            }
+            return "error";
+        }
     }
 
     private boolean checkForValidUsername(String username) {
@@ -379,17 +353,5 @@ public class PokeApiApplication {
     private boolean checkForValidEmail(String email) {
         if (email == null) return false;
         return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    }
-
-    public static void AsciiArt() {
-        logger.info("========================================");
-        logger.info(" mmmmmm       mm     mmmmmm     mmmmmm  ");
-        logger.info(" ##\"\"\"\"#m    ####    ##\"\"\"\"#m   \"\"##\"\"  ");
-        logger.info(" ##    ##    ####    ##    ##     ##    ");
-        logger.info(" ######\"    ##  ##   ######\"      ##    ");
-        logger.info(" ##         ######   ##           ##    ");
-        logger.info(" ##        m##  ##m  ##         mm##mm  ");
-        logger.info(" \"\"        \"\"    \"\"  \"\"         \"\"\"\"\"\"  ");
-        logger.info("========================================");
     }
 }

@@ -6,6 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Pokédex 2.0</title>
         <link rel="icon" type="image/png" href="images/webicon.png">
+        <link rel="stylesheet" href="stylesheet/default.css"> <!-- Default css values that apply to all pages -->
         <link rel="stylesheet" href="stylesheet/user.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
@@ -13,7 +14,6 @@
 
     <body>
         <main>
-
             <div class="header">
                 <div class="right_header">
                     <img src="images/logo.png" class="logo" alt="Logo">
@@ -21,7 +21,6 @@
                 <div class="left_header">
                     <button onclick="location.href='/'" type="submit" class="header-button" >Home</button>
                 </div>
-
             </div>
 
             <div class="main-user-window">
@@ -30,7 +29,7 @@
                         <form class="personal-info-form" method="POST" enctype="multipart/form-data">
                             <div class="data-div">
                                 <div class="avatar">
-                                    <img src="images/user.svg" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
+                                    <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
                                 </div>
                             </div>
                             <input type="file" id="user-pfp-input" name="avatar" accept="image/png, image/jpeg" />

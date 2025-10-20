@@ -12,7 +12,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 
 @Service
@@ -23,7 +22,11 @@ public class PokeApiDBService {
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    // UserService
+
+
+    // ===================================================== //
+    // * UserService                                         //
+    // ===================================================== //
 
     public static void createUser(UsersRepository usersRepository, String name, String email, String password, String salt) {
         if(!usersRepository.findByName(name).isEmpty() || !usersRepository.findByEmail(email).isEmpty() || password.isEmpty() || salt.isEmpty()) {throw new RuntimeException("Ikd some error");}
@@ -35,8 +38,6 @@ public class PokeApiDBService {
         usersRepository.save(user);
     }
 
-
-
     public static void deleteUser(UsersRepository usersRepository, String name) {
         if(!usersRepository.findByName(name).isEmpty()) {return;}
         usersRepository.deleteByName(name);
@@ -45,7 +46,6 @@ public class PokeApiDBService {
     public static void changeUsername(UsersRepository usersRepository, String name, String newName) {
         if(!usersRepository.findByName(newName).isEmpty()) {return;}
         List<Users> users = usersRepository.findByName(name);
-        assert users.size() == 1;
         Users user = users.getFirst();
         user.setName(newName);
         usersRepository.save(user);
@@ -55,7 +55,6 @@ public class PokeApiDBService {
         if(usersRepository.findByName(name).isEmpty() || usersRepository.findByEmail(email).isEmpty() || !usersRepository.findByEmail(newEmail).isEmpty()) {return;}
         if(email.equals(newEmail)) {return;}
         List<Users> users = usersRepository.findByName(name);
-        assert users.size() == 1;
         Users user = users.getFirst();
         if(!Objects.equals(user.getEmail(), email)) {return;}
         user.setEmail(newEmail);
@@ -66,7 +65,6 @@ public class PokeApiDBService {
         if(usersRepository.findByName(name).isEmpty() || usersRepository.findBySalt(salt).isEmpty() || usersRepository.findByPassword(password).isEmpty()) {return;}
         if(password != newPassword && salt != newSalt) {return;}
         List<Users> users = usersRepository.findByName(name);
-        assert users.size() == 1;
         Users user = users.getFirst();
         if(!Objects.equals(user.getPassword(), password) || !Objects.equals(user.getSalt(), salt)) {return;}
         if(!Objects.equals(password,newPassword) || !Objects.equals(salt, newSalt)) {return;}
@@ -75,85 +73,121 @@ public class PokeApiDBService {
         usersRepository.save(user);
     }
 
-    public static Optional<Boolean> validateLogin(UsersRepository usersRepository, CookiesRepository cookiesRepository, String usernameOrEmail, String password) {
-        if(usersRepository.findByName(usernameOrEmail).isEmpty() && usersRepository.findByEmail(usernameOrEmail).isEmpty()) {return Optional.empty();}
-        if(usersRepository.findByPassword(password).isEmpty()) {return Optional.empty();}
-        return Optional.empty();
+    public static boolean validatePassword(UsersRepository usersRepository, String usernameoremail, String password) {
+        if(usersRepository.findByPassword(password).isEmpty() || (usersRepository.findByName(usernameoremail).isEmpty() && usersRepository.findByEmail(usernameoremail).isEmpty())) {return false;}
+        List<Users> usersByName = usersRepository.findByName(usernameoremail);
+        for(Users user : usersByName) {
+            if(Objects.equals(user.getPassword(), password)) {
+                return true;
+            }
+        }
+        List<Users> usersByEmail = usersRepository.findByEmail(usernameoremail);
+        for(Users user : usersByEmail) {
+            if(Objects.equals(user.getPassword(), password)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
-//    public static void validatePassword(UsersRepository usersRepository, String name, String password) {
-//    }
 
-    // maybe other way \/
+    // ===================================================== //
+    // * ConvertService                                      //
+    // ===================================================== //
 
     public static Long getIdByUsernameOrEmail(UsersRepository usersRepository, String usernameOrEmail) {
-//        if(usersRepository.findByEmail(usernameOrEmail).isEmpty() && usersRepository.findByName(usernameOrEmail).isEmpty()) {return null;}
         Long id = null;
-        logger.info(usernameOrEmail);
         try {
             List<Users> users = usersRepository.findByName(usernameOrEmail);
-            logger.info(String.valueOf(users));
-            assert users.size() == 1;
+            if (users.isEmpty()) { logger.warn("Failed to retrieve user ID for username: {}", usernameOrEmail);}
             id = users.getFirst().getId();
-        } catch(Exception e) {
-            logger.error("Error getting user by name: " + e.getMessage());
-        }
+        } catch(Exception e) {}
 
         try {
             List<Users> users = usersRepository.findByEmail(usernameOrEmail);
-            logger.info(String.valueOf(users));
-            assert users.size() == 1;
+            if (users.isEmpty()) { logger.warn("Failed to retrieve user ID for email: {}", usernameOrEmail);}
             id = users.getFirst().getId();
-        } catch(Exception e) {
-            logger.error("Error getting user by email: " + e.getMessage());
-        }
+        } catch(Exception e) {}
 
-        logger.info("User ID: " + id);
+        if(id == null) {
+            logger.warn("No user found for username/email: {}", usernameOrEmail);
+            return null;
+        }
+        logger.info("Retrieved user ID: {} for username/email: {}", id, usernameOrEmail);
+
         return id;
     }
 
-    public static Optional<String> getUsernameByCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, String value) {
-        if(cookiesRepository.findByValue(value).isEmpty()) { return Optional.empty(); }
-        List<Cookies> cookies = cookiesRepository.findByValue(value);
-        assert cookies.size() == 1;
-        Long id = cookies.get(0).getUid();
-        Optional<Users> userOpt = usersRepository.findById(id);
-        return userOpt.map(Users::getName);
+    public static String getSaltByUsernameOrEmail(UsersRepository usersRepository, String usernameoremail) {
+        String salt = null;
+        try {
+            List<Users> users = usersRepository.findByName(usernameoremail);
+            if (users.isEmpty()) { logger.warn("Failed to retrieve salt for username: {}", usernameoremail);}
+            salt = users.getFirst().getSalt();
+        } catch(Exception e) {}
+
+        try {
+            List<Users> users = usersRepository.findByEmail(usernameoremail);
+            if (users.isEmpty()) { logger.warn("Failed to retrieve salt for email: {}", usernameoremail);}
+            salt = users.getFirst().getSalt();
+        } catch(Exception e) {}
+
+        if(salt == null) {
+            logger.warn("No user found for username/email: {}", usernameoremail);
+            return null;
+        }
+        logger.info("Retrieved salt for username/email: {}", usernameoremail);
+
+        return salt;
     }
 
 
 
-
-
-    // CookieService
+    // ===================================================== //
+    // * CookieService                                       //
+    // ===================================================== //
 
     public static String createCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, Long uid) {
+        if(uid == null) {
+            logger.error("Invalid id");
+            return null;
+        }
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
         String value = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
-        logger.info("Generated cookie value: " + value);
         Instant expires = Instant.now().plus(7, ChronoUnit.DAYS);
-        if(!cookiesRepository.findByValue(value).isEmpty()) {return null;}
+        if(!cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie already exists!"); return null; }
         Cookies cookies = new Cookies();
         cookies.setUid(uid);
         cookies.setValue(value);
         cookies.setExpires(String.valueOf(expires));
+        logger.info("Creating cookie for user ID: {} with value: {} expiring at: {}", uid, value, expires.toString());
         cookiesRepository.save(cookies);
-        logger.info("Returning cookie value: " + value);
         return value;
     }
 
     public static boolean validateCookie(CookiesRepository cookiesRepository, String value) {
-        if(cookiesRepository.findByValue(value).isEmpty()) { return false; }
+        if(cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie does not exist in db!"); return false; }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
-        assert cookies.size() == 1;
         Cookies cookie = cookies.getFirst();
         Instant expires = Instant.parse(cookie.getExpires());
         if(Instant.now().isAfter(expires)) {
             cookiesRepository.deleteByValue(value);
+            logger.warn("Cookie is expired!");
             return false;
         }
         return true;
     }
+
+    public static String getUsernameByCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, String value) { // THE value VARIABLE DOESN'T GET A VALUE FROM THE PARAMETER
+        if(cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie does not exist in db!"); return null; }
+        List<Cookies> cookies = cookiesRepository.findByValue(value);
+        Long id = cookies.getFirst().getUid();
+        Users user = usersRepository.findById(id).get();
+        return user.getName();
+    }
+
+
+
 }

@@ -6,32 +6,21 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <title>Pokédex 2.0</title>
         <link rel="icon" type="image/png" href="images/webicon.png">
+        <link rel="stylesheet" href="stylesheet/default.css"> <!-- Default css values that apply to all pages -->
         <link rel="stylesheet" href="stylesheet/signup.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
-        <link
-                href="https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&amp;display=swap"
-                rel="stylesheet">
     </head>
 
     <body>
         <main>
             <div class="header">
                 <div class="left_header">
-                    <div class="header-dropdown">
-                        <button id="menu-button" class="header-dropdown-button"><img src="images/menu-icon-white.svg" class="button-img" alt="Dropdown"></button>
-                        <div class="header-dropdown-content">
-                            <a href="#">Teams Browser</a>
-                            <a href="#">Your Teams</a>
-                            <a href="#">Idk what to put here yet</a>
-                        </div>
-                    </div> 
-                    <button onclick="location.href='/'" type="submit" class="header-button" >Home</button>
-                    <button onclick="location.href='/login'" type="submit" class="header-button" >Login</button>
-                    <button onclick="location.href='/signup'" type="submit" class="header-button" >Sign up</button>
+                    <img src="images/logo.png" class="logo" alt="Logo">
                 </div>
                 <div class="right_header">
-                    <img src="images/logo.png" class="logo" alt="Logo">
+                    <button onclick="location.href='/login'" type="submit" class="header-button" >Login</button>
+                    <button onclick="location.href='/signup'" type="submit" class="header-button" >Sign up</button>
                 </div>
             </div>
 
