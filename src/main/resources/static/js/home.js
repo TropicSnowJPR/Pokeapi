@@ -47,7 +47,7 @@ async function fetchTeamData() {
     try {
         if (fetchTeamLock) {return}
         fetchTeamLock = true
-        const res = await fetch("/home/team")
+        const res = await fetch("/team")
         return res.text();
     } finally {
         fetchTeamLock = false
@@ -65,13 +65,13 @@ async function loadTeam() {
         const text = await fetchTeamData();
         if (!(text.startsWith('{')) || text.startsWith('[')) {return}   
         const data = JSON.parse(text);
-        const teamDiv = document.getElementById("team-div");
-        if (!teamDiv) {throw Error ("Element with ID 'team-div' not found");}
+        const teamDiv = document.getElementById("team-content");
+        if (!teamDiv) {throw Error ("Element with ID 'team-content' not found");}
         for (let i = 0; i < 6; i++) {
             if (data.team_members[i] !== 0) {
                 console.log(data.team_members[i])
                 const div = document.createElement("div");
-                div.className = "pokemon-div"
+                div.className = "inner-field-box"
                 const p = document.createElement("p")
                 p.append(data.team_members[i])
                 div.appendChild(p)

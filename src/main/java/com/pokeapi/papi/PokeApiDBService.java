@@ -1,5 +1,8 @@
 package com.pokeapi.papi;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.pokeapi.papi.db.*;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,9 +12,7 @@ import org.springframework.stereotype.Service;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 
 @Service
@@ -21,14 +22,20 @@ public class PokeApiDBService {
 
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final SecureRandom secureRandom = new SecureRandom();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
 
 
     // ===================================================== //
-    // * UserService                                         //
+    // * User Service                                        //
     // ===================================================== //
 
     public static void createUser(UsersRepository usersRepository, String name, String email, String password, String salt) {
+        if(name == null) {throw new RuntimeException("Name cannot be null!");}
+        if(name.length() < 3 || name.length() > 24) {throw new RuntimeException("Invalid name (Name needs to be longer than 3 characters and shorter than 24 characters)!");}
+        if(!name.matches("^[a-zA-Z0-9_]+$")) {throw new RuntimeException("Invalid name (Name needs to only contain A-Z, a-z, 0-9 and _)!");}
+        if(email == null) {throw new RuntimeException("Email cannot be null!");}
+        if(!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {throw new RuntimeException("Invalid email format (Email must be a valid email. Example: 'example@mail.com')!");}
         if(!usersRepository.findByName(name).isEmpty() || !usersRepository.findByEmail(email).isEmpty() || password.isEmpty() || salt.isEmpty()) {throw new RuntimeException("Ikd some error");}
         Users user = new Users();
         user.setName(name);
@@ -39,12 +46,12 @@ public class PokeApiDBService {
     }
 
     public static void deleteUser(UsersRepository usersRepository, String name) {
-        if(!usersRepository.findByName(name).isEmpty()) {return;}
+        if(!usersRepository.findByName(name).isEmpty()) {throw new RuntimeException("User does not exist!");}
         usersRepository.deleteByName(name);
     }
 
     public static void changeUsername(UsersRepository usersRepository, String name, String newName) {
-        if(!usersRepository.findByName(newName).isEmpty()) {return;}
+        if(!usersRepository.findByName(newName).isEmpty()) {throw new RuntimeException("Username is already taken!");}
         List<Users> users = usersRepository.findByName(name);
         Users user = users.getFirst();
         user.setName(newName);
@@ -52,22 +59,22 @@ public class PokeApiDBService {
     }
 
     public static void changeEmail(UsersRepository usersRepository, String name, String email, String newEmail) {
-        if(usersRepository.findByName(name).isEmpty() || usersRepository.findByEmail(email).isEmpty() || !usersRepository.findByEmail(newEmail).isEmpty()) {return;}
-        if(email.equals(newEmail)) {return;}
+        if(usersRepository.findByName(name).isEmpty() || usersRepository.findByEmail(email).isEmpty() || !usersRepository.findByEmail(newEmail).isEmpty()) {throw new RuntimeException("Invalid user or email already taken!");}
+        if(email.equals(newEmail)) {throw new RuntimeException("New email cannot be the same as the old email!");}
         List<Users> users = usersRepository.findByName(name);
         Users user = users.getFirst();
-        if(!Objects.equals(user.getEmail(), email)) {return;}
+        if(!Objects.equals(user.getEmail(), email)) {throw new RuntimeException("Current email does not match!");}
         user.setEmail(newEmail);
         usersRepository.save(user);
     }
 
     public static void changePassword(UsersRepository usersRepository, String name, String password, String salt, String newPassword, String newSalt) {
-        if(usersRepository.findByName(name).isEmpty() || usersRepository.findBySalt(salt).isEmpty() || usersRepository.findByPassword(password).isEmpty()) {return;}
-        if(password != newPassword && salt != newSalt) {return;}
+        if(usersRepository.findByName(name).isEmpty() || usersRepository.findBySalt(salt).isEmpty() || usersRepository.findByPassword(password).isEmpty()) {throw new RuntimeException("Invalid user or password or salt!");}
+        if(password != newPassword && salt != newSalt) {throw new RuntimeException("New password and salt cannot be the same as the old password and salt!");}
         List<Users> users = usersRepository.findByName(name);
         Users user = users.getFirst();
-        if(!Objects.equals(user.getPassword(), password) || !Objects.equals(user.getSalt(), salt)) {return;}
-        if(!Objects.equals(password,newPassword) || !Objects.equals(salt, newSalt)) {return;}
+        if(!Objects.equals(user.getPassword(), password) || !Objects.equals(user.getSalt(), salt)) {throw new RuntimeException("Current password or salt does not match!");}
+        if(!Objects.equals(password,newPassword) || !Objects.equals(salt, newSalt)) {throw new RuntimeException("New password or salt cannot be the same as the old password or salt!");}
         user.setPassword(newPassword);
         user.setSalt(newSalt);
         usersRepository.save(user);
@@ -93,7 +100,26 @@ public class PokeApiDBService {
 
 
     // ===================================================== //
-    // * ConvertService                                      //
+    // * Team Service                                        //
+    // ===================================================== //
+
+    public static void createTeam(UsersRepository usersRepository, Long uid) {
+
+    }
+
+
+
+    // ===================================================== //
+    // * Pokemon Service                                     //
+    // ===================================================== //
+
+    public static void createPokemon(TeamsRepository teamsRepository, Long id, String name) {
+    }
+
+
+
+    // ===================================================== //
+    // * Convert Service                                     //
     // ===================================================== //
 
     public static Long getIdByUsernameOrEmail(UsersRepository usersRepository, String usernameOrEmail) {
@@ -112,7 +138,7 @@ public class PokeApiDBService {
 
         if(id == null) {
             logger.warn("No user found for username/email: {}", usernameOrEmail);
-            return null;
+            throw new RuntimeException("No user found for the provided username or email!");
         }
         logger.info("Retrieved user ID: {} for username/email: {}", id, usernameOrEmail);
 
@@ -135,7 +161,7 @@ public class PokeApiDBService {
 
         if(salt == null) {
             logger.warn("No user found for username/email: {}", usernameoremail);
-            return null;
+            throw new RuntimeException("No salt found for the provided username or email!");
         }
         logger.info("Retrieved salt for username/email: {}", usernameoremail);
 
@@ -145,7 +171,7 @@ public class PokeApiDBService {
 
 
     // ===================================================== //
-    // * CookieService                                       //
+    // * Cookie Service                                      //
     // ===================================================== //
 
     public static String createCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, Long uid) {
@@ -181,11 +207,42 @@ public class PokeApiDBService {
     }
 
     public static String getUsernameByCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, String value) { // THE value VARIABLE DOESN'T GET A VALUE FROM THE PARAMETER
-        if(cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie does not exist in db!"); return null; }
+        if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
         Long id = cookies.getFirst().getUid();
         Users user = usersRepository.findById(id).get();
         return user.getName();
+    }
+
+
+    public static Map<String, Object> getTeamFromCookie( PokemonsRepository pokemonsRepository, TeamsRepository teamsRepository, CookiesRepository cookiesRepository, String value) {
+        if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
+        List<Cookies> cookies = cookiesRepository.findByValue(value);
+        Long id = cookies.getFirst().getUid();
+        if(teamsRepository.findByUid(id).isEmpty()) { throw new RuntimeException("Team does not exist for this user!"); }
+        Teams team = teamsRepository.findByUid(id).getFirst();
+        List<String> teamMembers = new ArrayList<>();
+        for (String memberId : List.of(
+                team.getMem1(), team.getMem2(), team.getMem3(),
+                team.getMem4(), team.getMem5(), team.getMem6())) {
+            if(memberId == null || memberId.isEmpty()) { continue; }
+            if(!pokemonsRepository.findById(Long.valueOf(memberId)).isEmpty()) {
+                Pokemons pokemon = pokemonsRepository.findById(Long.valueOf(memberId)).get();
+                String name = pokemon.getName();
+                teamMembers.add(name);
+            } else {
+                Pokemon pokemon = PokeApiService.getPokemon(memberId)
+                        .map(json -> gson.fromJson(json, Pokemon.class))
+                        .orElseThrow(() -> new RuntimeException("Failed to fetch pokemon from PokeAPI for ID: " + memberId));
+                String name = pokemon.name();
+                Pokemons pokemons = new Pokemons();
+                pokemons.setName(name);
+                pokemons.setId(Long.valueOf(memberId));
+                pokemonsRepository.save(pokemons);
+                teamMembers.add(name);
+            }
+        }
+        return Map.of("team_members", teamMembers);
     }
 
 

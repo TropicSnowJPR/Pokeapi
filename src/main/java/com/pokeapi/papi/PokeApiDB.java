@@ -1,6 +1,7 @@
 package com.pokeapi.papi;
 
 import com.pokeapi.papi.config.ConfigManager;
+import com.pokeapi.papi.db.Users;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package com.pokeapi.papi;
+package com.pokeapi.papi.db;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

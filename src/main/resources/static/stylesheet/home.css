@@ -5,38 +5,25 @@
     gap: 0px;
 }
 
-.menu-document {
+#menu-document {
     grid-column: span 2 / span 2;
     grid-row: span 4 / span 4;
     grid-column-start: 4;
     grid-row-start: 2;
-    margin: 10px;
     padding: 0px;
-    background: #263238;
-    border-radius: 64px;
-    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
-    display:block; /* or flex/grid */
-        /* hidden by default */
-    overflow: hidden;
     position: relative;
     z-index: 1;
     font: inherit;
     height: min-content;
 }
 
-.search-document {
+#search-document {
     grid-column: span 5 / span 5;
     grid-column-start: 1;
     grid-row-start: 1;
     max-width: 100%;
     max-height: 20vw;
-    margin: 10px;
     padding: 0px;
-    background: #263238;
-    border-radius: 64px;
-    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
-    overflow: hidden;
-    display: flex;
     justify-content: center;
     justify-items: center;
     align-content: center;  
@@ -46,19 +33,13 @@
     overflow: hidden;
 }
 
-.pokemon-document {
+#pokemon-document {
     grid-column: span 3 / span 3;
     grid-row: span 4 / span 4;
     grid-column-start: 1;
     grid-row-start: 2;
     max-width: 100%;
-    margin: 10px;
     padding: 0px;
-    background: #263238;
-    border-radius: 64px;
-    box-shadow: 0 4px 24px rgba(99, 99, 99, 0.15);
-    overflow: hidden;
-    display: flex;
     justify-content: center;
     justify-items: center;
     align-content: center;  
@@ -101,12 +82,12 @@
 
 .image-container {
     display: none;
-    background-color: #f0f8ff; 
+    background-color: #f0f8ff;
     color: #f0f8ff;
-    padding: 20px; 
-    border-radius: 10px; 
-    width: 100px; 
-    height: 100px; 
+    padding: 20px;
+    border-radius: 10px;
+    width: 100px;
+    height: 100px;
 }
 
 a {
@@ -250,12 +231,6 @@ a {
 
 
 #pokemon-name, #pokemon-team-button {
-    padding: 8px 20px 8px;
-    margin: 10px 0 0 0;
-    border-radius: 12px;
-    font: inherit;
-    background-color: #263238;
-    color: #f0f8ff;
     display: flex;
     justify-content: space-between;
     align-items: center;

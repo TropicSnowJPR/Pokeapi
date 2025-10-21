@@ -1,5 +1,6 @@
-package com.pokeapi.papi;
+package com.pokeapi.papi.db;
 
+import com.pokeapi.papi.PokeApiDBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -3,6 +3,10 @@ package com.pokeapi.papi;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.pokeapi.papi.config.ConfigManager;
+import com.pokeapi.papi.db.CookiesRepository;
+import com.pokeapi.papi.db.PokemonsRepository;
+import com.pokeapi.papi.db.TeamsRepository;
+import com.pokeapi.papi.db.UsersRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -40,6 +44,12 @@ public class PokeApiApplication {
 
     @Autowired
     private CookiesRepository cookiesRepository;
+
+    @Autowired
+    private TeamsRepository teamsRepository;
+
+    @Autowired
+    private PokemonsRepository pokemonsRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -244,20 +254,13 @@ public class PokeApiApplication {
         @ResponseBody
         public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) throws IOException {
             Map<String, Object> response = new HashMap<>();
-            if (checkForValidUsername(req.username()) && checkForValidEmail(req.email())) {
-                try {
-                    PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
-                } catch (Exception err) {
-                    response.put("success", false);
-                    response.put("error", err);
-                    return response;
-                }
-            } else if (!checkForValidUsername(req.username)) {
+            try {
+                PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
+                response.put("success", true);
+            } catch (Exception err) {
                 response.put("success", false);
-                response.put("error", "Invalid Username. Username must be 3–16 characters long and may only contain letters, numbers, and underscores.");
-            } else if (!checkForValidEmail(req.email)) {
-                response.put("success", false);
-                response.put("error", "Invalid Email. Email must look like user@example.com and only use letters, numbers, ., _, +, - before @.\n");
+                response.put("error", err);
+                return response;
             }
             return response;
         }
@@ -300,27 +303,35 @@ public class PokeApiApplication {
 
 
 
-        // -------- API PAGES --------
-        @GetMapping("/home/pokemon/{nameid}") //794
-        public ResponseEntity<String> postPokemonHomePage(@PathVariable String nameid) {
-            return ResponseEntity.of(PokeApiService.getPokemon(nameid));
-        }
-
-        @GetMapping("/home/move/{nameid}")
-        public ResponseEntity<String> postMoveHomePage(@PathVariable String nameid) {
-            return ResponseEntity.of(Optional.of(PokeApiService.getMove(nameid)));
-        }
-
-        @GetMapping("home/team")
+        // -------- TEAM API PAGES --------
+        @GetMapping("/team")
         @ResponseBody
-        public Map<String, Object> getTeamPokemons(@CookieValue("loginCookie") String loginCookie) {
-            return PokeApiDB.getPokemonsFromUser(loginCookie);
+        public Map<String, Object> getTeamPokemons(HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                        .findAny();
+                try {
+                    return PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()));
+                } catch (Exception e) {
+                    logger.error("Error getting team: " + e);
+                }
+            }
+            return Map.of("success", false);
         }
 
-        @GetMapping("home/team/add/{nameid}")
-        public Map<String, Object> addPokemonToTeam(@PathVariable String nameid) {
-            return PokeApiDB.addPokemonToTeam(nameid);
-        }
+//        @GetMapping("/team/add/{nameid}")
+//        public Map<String, Object> addPokemonToTeam(@PathVariable String nameid) {
+//            return PokeApiDB.addPokemonToTeam(nameid);
+//        }
+
+//        @GetMapping("/team/remove/{nameid}")
+//        public Map<String, Object> removePokemonFromTeam(@PathVariable String nameid) {
+//            return PokeApiDB.removePokemonFromTeam(nameid);
+//        }
+
+
 
 
 
@@ -342,16 +353,5 @@ public class PokeApiApplication {
             }
             return "error";
         }
-    }
-
-    private boolean checkForValidUsername(String username) {
-        if (username == null) return false;
-        if (username.length() < 3 || username.length() > 16) return false;
-        return username.matches("^[a-zA-Z0-9_]+$");
-    }
-
-    private boolean checkForValidEmail(String email) {
-        if (email == null) return false;
-        return email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     }
 }
