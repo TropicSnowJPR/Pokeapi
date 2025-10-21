@@ -26,47 +26,6 @@ h2 {
     margin-bottom: 20px;
 }
 
-.input[type="text"], .input[type="password"], .input[type="email"] {
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    font: inherit;
-    background-color: #b43f3d;
-    color: #f0f8ff;
-    width: 16vw;
-    margin-top: 0px;
-    margin-bottom: 10px;
-}
-
-.button {
-    background-color: #EF5350;
-    color: #f0f8ff;
-    border: none;
-    padding: 10px;
-    border-radius: 12px;
-    width: 17.2vw;
-    margin-top: 0px;
-    border: 1px solid #ccc;
-    margin-bottom: 10px;
-    font: inherit;
-    cursor: pointer;
-}
-
-button {
-    background-color: #EF5350;
-    color: #f0f8ff;
-    border: none;
-    padding: 10px;
-    border-radius: 12px;
-    font: inherit;
-    cursor: pointer;
-    height: 38px;        /* same as input */
-    width: 38px;         /* square buttons */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 
 #submit-button {
     margin-left: 10px

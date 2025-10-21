@@ -103,8 +103,77 @@ public class PokeApiDBService {
     // * Team Service                                        //
     // ===================================================== //
 
-    public static void createTeam(UsersRepository usersRepository, Long uid) {
+    public static void createTeam(TeamsRepository teamsRepository, UsersRepository usersRepository, Long uid) {
+        if(usersRepository.findById(uid).isEmpty()) {throw new RuntimeException("User with the provided ID does not exist!");}
+        if(teamsRepository.findByUid(uid).isEmpty()) {
+            Teams team = new Teams();
+            team.setUid(uid);
+            team.setMem1("0");
+            team.setMem2("0");
+            team.setMem3("0");
+            team.setMem4("0");
+            team.setMem5("0");
+            team.setMem6("0");
+            teamsRepository.save(team);
+        }
+    }
 
+    public static void addPokemonToTeam(CookiesRepository cookiesRepository, TeamsRepository teamsRepository, UsersRepository usersRepository, String cookieValue, String pokemonId) {
+        if(usersRepository.findById(PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue))).isEmpty()) {
+            throw new RuntimeException("User with the provided ID does not exist!");
+        }
+        Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue));
+        if(teamsRepository.findByUid(uid).isEmpty()) {throw new RuntimeException("Team for the provided user ID does not exist!");}
+        Teams team = teamsRepository.findByUid(uid).getFirst();
+        if(team.getMem1().equals("0")) {
+            team.setMem1(pokemonId);
+        } else if(team.getMem2().equals("0")) {
+            team.setMem2(pokemonId);
+        } else if(team.getMem3().equals("0")) {
+            team.setMem3(pokemonId);
+        } else if(team.getMem4().equals("0")) {
+            team.setMem4(pokemonId);
+        } else if(team.getMem5().equals("0")) {
+            team.setMem5(pokemonId);
+        } else if(team.getMem6().equals("0")) {
+            team.setMem6(pokemonId);
+        } else {
+            throw new RuntimeException("Team is already full!");
+        }
+        teamsRepository.save(team);
+    }
+
+    public static void removePokemonFromTeam(CookiesRepository cookiesRepository, TeamsRepository teamsRepository, UsersRepository usersRepository, String cookieValue, String id) {
+        if(usersRepository.findById(PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue))).isEmpty()) {
+            throw new RuntimeException("User with the provided ID does not exist!");
+        }
+        Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue));
+        if(teamsRepository.findByUid(uid).isEmpty()) {throw new RuntimeException("Team for the provided user ID does not exist!");}
+        Teams team = teamsRepository.findByUid(uid).getFirst();
+        boolean found = false;
+        if(team.getMem1().equals(id)) {
+            team.setMem1("0");
+            found = true;
+        } else if(team.getMem2().equals(id)) {
+            team.setMem2("0");
+            found = true;
+        } else if(team.getMem3().equals(id)) {
+            team.setMem3("0");
+            found = true;
+        } else if(team.getMem4().equals(id)) {
+            team.setMem4("0");
+            found = true;
+        } else if(team.getMem5().equals(id)) {
+            team.setMem5("0");
+            found = true;
+        } else if(team.getMem6().equals(id)) {
+            team.setMem6("0");
+            found = true;
+        }
+        if(!found) {
+            throw new RuntimeException("Pokemon is not in the team! Pokemon:" + id);
+        }
+        teamsRepository.save(team);
     }
 
 
@@ -114,6 +183,7 @@ public class PokeApiDBService {
     // ===================================================== //
 
     public static void createPokemon(TeamsRepository teamsRepository, Long id, String name) {
+        // NOT NEEDED
     }
 
 
@@ -126,21 +196,17 @@ public class PokeApiDBService {
         Long id = null;
         try {
             List<Users> users = usersRepository.findByName(usernameOrEmail);
-            if (users.isEmpty()) { logger.warn("Failed to retrieve user ID for username: {}", usernameOrEmail);}
             id = users.getFirst().getId();
-        } catch(Exception e) {}
+        } catch(Exception _) {}
 
         try {
             List<Users> users = usersRepository.findByEmail(usernameOrEmail);
-            if (users.isEmpty()) { logger.warn("Failed to retrieve user ID for email: {}", usernameOrEmail);}
             id = users.getFirst().getId();
-        } catch(Exception e) {}
+        } catch(Exception _) {}
 
         if(id == null) {
-            logger.warn("No user found for username/email: {}", usernameOrEmail);
             throw new RuntimeException("No user found for the provided username or email!");
         }
-        logger.info("Retrieved user ID: {} for username/email: {}", id, usernameOrEmail);
 
         return id;
     }
@@ -149,21 +215,17 @@ public class PokeApiDBService {
         String salt = null;
         try {
             List<Users> users = usersRepository.findByName(usernameoremail);
-            if (users.isEmpty()) { logger.warn("Failed to retrieve salt for username: {}", usernameoremail);}
             salt = users.getFirst().getSalt();
-        } catch(Exception e) {}
+        } catch(Exception _) {}
 
         try {
             List<Users> users = usersRepository.findByEmail(usernameoremail);
-            if (users.isEmpty()) { logger.warn("Failed to retrieve salt for email: {}", usernameoremail);}
             salt = users.getFirst().getSalt();
-        } catch(Exception e) {}
+        } catch(Exception _) {}
 
         if(salt == null) {
-            logger.warn("No user found for username/email: {}", usernameoremail);
             throw new RuntimeException("No salt found for the provided username or email!");
         }
-        logger.info("Retrieved salt for username/email: {}", usernameoremail);
 
         return salt;
     }
@@ -176,37 +238,34 @@ public class PokeApiDBService {
 
     public static String createCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, Long uid) {
         if(uid == null) {
-            logger.error("Invalid id");
             return null;
         }
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
         String value = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
         Instant expires = Instant.now().plus(7, ChronoUnit.DAYS);
-        if(!cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie already exists!"); return null; }
+        if(!cookiesRepository.findByValue(value).isEmpty()) { return null; }
         Cookies cookies = new Cookies();
         cookies.setUid(uid);
         cookies.setValue(value);
         cookies.setExpires(String.valueOf(expires));
-        logger.info("Creating cookie for user ID: {} with value: {} expiring at: {}", uid, value, expires.toString());
         cookiesRepository.save(cookies);
         return value;
     }
 
     public static boolean validateCookie(CookiesRepository cookiesRepository, String value) {
-        if(cookiesRepository.findByValue(value).isEmpty()) { logger.error("Cookie does not exist in db!"); return false; }
+        if(cookiesRepository.findByValue(value).isEmpty()) { return false; }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
         Cookies cookie = cookies.getFirst();
         Instant expires = Instant.parse(cookie.getExpires());
         if(Instant.now().isAfter(expires)) {
             cookiesRepository.deleteByValue(value);
-            logger.warn("Cookie is expired!");
             return false;
         }
         return true;
     }
 
-    public static String getUsernameByCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, String value) { // THE value VARIABLE DOESN'T GET A VALUE FROM THE PARAMETER
+    public static String getUsernameByCookie(UsersRepository usersRepository, CookiesRepository cookiesRepository, String value) {
         if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
         Long id = cookies.getFirst().getUid();
@@ -219,13 +278,13 @@ public class PokeApiDBService {
         if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
         Long id = cookies.getFirst().getUid();
-        if(teamsRepository.findByUid(id).isEmpty()) { throw new RuntimeException("Team does not exist for this user!"); }
-        Teams team = teamsRepository.findByUid(id).getFirst();
         List<String> teamMembers = new ArrayList<>();
+        if(teamsRepository.findByUid(id).isEmpty()) { return Map.of("team_members", teamMembers); }
+        Teams team = teamsRepository.findByUid(id).getFirst();
         for (String memberId : List.of(
                 team.getMem1(), team.getMem2(), team.getMem3(),
                 team.getMem4(), team.getMem5(), team.getMem6())) {
-            if(memberId == null || memberId.isEmpty()) { continue; }
+            if(memberId == null || memberId.isEmpty() || memberId.equals("0")) { continue; }
             if(!pokemonsRepository.findById(Long.valueOf(memberId)).isEmpty()) {
                 Pokemons pokemon = pokemonsRepository.findById(Long.valueOf(memberId)).get();
                 String name = pokemon.getName();

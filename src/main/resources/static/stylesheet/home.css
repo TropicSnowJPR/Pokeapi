@@ -241,27 +241,9 @@ a {
     user-select: none;
 }
 
-#latest-cry, #legacy-cry {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: 40px;
-    border-radius: 12px;
-    background-color: #f0f8ff;
-    color: #f0f8ff;
-}
 
 
 
-
-
-audio {
-    background-color: #060606;
-    color: #f0f8ff;
-    margin-top: 10px;
-    margin-bottom: 10px;
-
-}
 
 
 .move-tooltip { 
@@ -490,4 +472,31 @@ input {
     justify-content: space-between;
     align-items: center;
 
+}
+
+
+
+
+
+
+
+
+.team-member {
+    color: #f0f8ff;
+    width: min-content;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.team-member-remove-button {
+    background-color: #263238;
+    color: #f0f8ff;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
 }

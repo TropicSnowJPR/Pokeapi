@@ -58,15 +58,13 @@ public class PokeApiFileService {
             if (ext.equals(".jpg") || ext.equals(".jpeg") || ext.equals(".gif") || ext.equals(".bmp") || ext.equals(".webp") || ext.equals(".tiff") || ext.equals(".png")) {
                 File outputFile = new File(userroot.toFile(), "pfp.png");
                 ImageIO.write(image, "png", outputFile);
-                logger.info("New pfp set for {}. Saved in Path: {}", username, userroot);
             } else {
-                logger.warn("Suspicious file detected and denied! With {} file extension!", ext); }
+                logger.warn("Invalid image file detected and denied! With {} file extension!", ext); }
         } catch (Exception e) {
             logger.error("Failed to store file: {}", e.getMessage(), e);
         }
     }
 
-    // Load a single file as a Spring Resource
     public Resource load(String filename) {
         try {
             Path file = root.resolve(filename).normalize();
@@ -81,7 +79,6 @@ public class PokeApiFileService {
         return null;
     }
 
-    // List all files
     public List<String> list() {
         try (Stream<Path> paths = Files.list(root)) {
             return paths
@@ -94,7 +91,6 @@ public class PokeApiFileService {
         return null;
     }
 
-    // Delete all files
     public void clear() {
         try {
             FileSystemUtils.deleteRecursively(root);

@@ -14,10 +14,13 @@ public class TeamsController {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private TeamsRepository teamsRepository;
+
     record createRequest(Long uid) {}
 
     @PostMapping("/create")
     public void createTeam(@RequestBody createRequest req) {
-        PokeApiDBService.createTeam(usersRepository, req.uid);
+        PokeApiDBService.createTeam(teamsRepository, usersRepository, req.uid);
     }
 }

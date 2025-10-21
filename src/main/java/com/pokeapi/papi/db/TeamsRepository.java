@@ -7,5 +7,5 @@ import java.util.List;
 public interface TeamsRepository extends JpaRepository<Teams, Long> {
     List<Teams> findByUid(Long uid);
     void deleteById(Long id);
-
+    void deleteAllByUid(Long uid);
 }
