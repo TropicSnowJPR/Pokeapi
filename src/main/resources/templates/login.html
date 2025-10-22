@@ -12,8 +12,8 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
     </head>
 
-    <body>
-        <main>
+    <body class="standalone-body">
+        <main class="standalone-main">
             <div class="header">
                 <div class="left_header">
                     <img src="images/logo.png" class="logo" alt="Logo">
@@ -24,14 +24,16 @@
                 </div>
             </div>
 
-            <div class="login-window" id="login-window">
-                <div class="frame">
-                    <h2>Login</h2>
-                    <form id="loginForm">
-                        <input type="text" placeholder="Username" class="input" id="usernameoremail">
-                        <input type="password" placeholder="Password" class="input" id="password">
-                        <input type="submit" class="button" value="Login">
-                    </form>
+            <div class="standalone-box" id="login-window">
+                <div class="standalone-background-box">
+                    <div class="standalone-content-box">
+                        <h2>Login</h2>
+                        <form id="loginForm">
+                            <input type="text" placeholder="Username" class="input" id="usernameoremail">
+                            <input type="password" placeholder="Password" class="input" id="password">
+                            <input type="submit" class="button" value="Login">
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>

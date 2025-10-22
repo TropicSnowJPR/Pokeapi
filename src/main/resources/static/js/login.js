@@ -48,6 +48,10 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     const password = document.getElementById('password').value;
     const salt = await fetchSalt(usernameoremail);
     const data = JSON.parse(salt);
+    if(!data.success) {
+        alert("❌ Login failed: Invalid username/email or password");
+        return;
+    }
     const hashedPassword = await hashPassword(password, data.salt);
 
     fetch('/login/submit', {

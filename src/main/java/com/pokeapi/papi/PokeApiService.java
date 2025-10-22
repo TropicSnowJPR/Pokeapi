@@ -10,7 +10,7 @@ import java.net.http.HttpResponse;
 import java.util.Optional;
 
 public class PokeApiService {
-    // Raw Json Pokemon Data#
+
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
 
     public static Optional<String> getPokemon(String nameid) {
@@ -43,7 +43,8 @@ public class PokeApiService {
 
     }
 
-    // Raw Json Move Data
+
+
     public static String getMove(String moveid) {
 
         if (moveid == null || moveid.isEmpty()) {

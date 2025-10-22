@@ -12,10 +12,10 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
     </head>
 
-    <body>
-        <main>
+    <body class="standalone-body">
+        <main class="standalone-main">
             <div class="header">
-                <div class="left_header">
+                <div class="left_header" >
                     <img src="images/logo.png" class="logo" alt="Logo">
                 </div>
                 <div class="right_header">
@@ -24,16 +24,18 @@
                 </div>
             </div>
 
-            <div class="signup-window" id="signup-window">
-                <div class="frame">
-                    <h2>Sign up</h2>
-                    <!-- Replaced JSF inputText/inputSecret with normal HTML inputs -->
-                    <form id="signupForm">
-                        <input type="text" id="username" class="input" placeholder="Username">
-                        <input type="email" id="email" class="input" placeholder="Email">
-                        <input type="password" id="password" class="input" placeholder="Password">
-                        <input type="submit" class="button" value="Sign up">
-                    </form>
+            <div class="standalone-box" id="signup-window">
+                <div class="standalone-background-box">
+                    <div class="standalone-content-box">
+                        <h2>Sign up</h2>
+                        <!-- Replaced JSF inputText/inputSecret with normal HTML inputs -->
+                        <form id="signupForm">
+                            <input type="text" id="username" class="input" placeholder="Username">
+                            <input type="email" id="email" class="input" placeholder="Email">
+                            <input type="password" id="password" class="input" placeholder="Password">
+                            <input type="submit" class="button" value="Sign up">
+                        </form>
+                    </div>
                 </div>
             </div>
         </main>

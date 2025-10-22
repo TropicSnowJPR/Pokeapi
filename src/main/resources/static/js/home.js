@@ -18,7 +18,7 @@ document.getElementById("search").addEventListener('change', search)
 async function search() {
     const nameid = document.getElementById("search").value.trim();
     if (!nameid) return;
-    window.location.href = `/pokemon?id=${id}`;
+    window.location.href = `/pokemon?id=${nameid}`;
 };
 
 document.getElementById("user-logout").addEventListener("click", async () => {
@@ -32,27 +32,78 @@ document.getElementById("user-logout").addEventListener("click", async () => {
     }
 })
 
-document.getElementById("add-to-team").addEventListener("click", async () => {
-    const params = new URLSearchParams(window.location.search);
-    const idFromUrl = params.get("id");
-    if (idFromUrl) {
-        id = idFromUrl.trim();
-    } else {
-        console.error("No pokemon id found in input or URL");
-        return;
-    }
-
-    try {
-        const response = await fetch(`/team/add/${id}`, {method: "POST"});
-        if (response.ok) {
-            window.location.reload();
+try {
+    document.getElementById("add-to-team").addEventListener("click", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const idFromUrl = params.get("id");
+        let nameid = null;
+        if (idFromUrl) {
+            nameid = idFromUrl.trim();
         } else {
-            throw new Error("Failed to add team member");
+            console.error("No pokemon id found in input or URL");
+            return;
         }
-    } catch (err) {
-        console.error(err);
-    }
-});
+
+        try {
+            const response = await fetch(`/team/add/${nameid}`);
+            if (response.ok) {
+                await loadTeam();
+            } else {
+                throw new Error("Failed to add team member");
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    });
+} catch (err) {
+    //console.error(err);
+}
+
+try {
+    document.addEventListener("DOMContentLoaded", async () => {
+
+        for (const el of document.getElementsByClassName("move")) {
+            el.addEventListener("mouseover", async () => {
+                const moveName = el.textContent.trim();
+
+                try {
+                    const res = await fetch(`/move?id=${encodeURIComponent(moveName)}`);
+                    if (!res.ok) throw new Error("Fetch failed");
+
+                    const data = await res.json();
+
+                    let tooltipText = "";
+
+                    if (data.move?.power != null) {
+                        tooltipText += `Power: ${data.move.power}\n`;
+                    }
+                    if (data.move?.accuracy != null) {
+                        tooltipText += `Accuracy: ${data.move.accuracy}\n`;
+                    }
+                    if (data.move?.moveType?.name != null) {
+                        tooltipText += `Type: ${data.move.moveType.name}\n`;
+                    }
+                    if (data.move?.damageClass?.name != null) {
+                        tooltipText += `Damage Class: ${data.move.damageClass.name}\n`;
+                    }
+                    if (data.move?.effect_chance != null) {
+                        tooltipText += `Effect Chance: ${data.move.effect_chance}\n`;
+                    }
+
+                    if (tooltipText === "") { throw new Error("No data for tooltip"); }
+                    el.title = tooltipText;
+
+                } catch (err) {
+                    console.error(`Error fetching data for ${moveName}:`, err);
+                    el.title = "Could not load move data.";
+                }
+            }, { once: true });
+        }
+    });
+} catch (err) {
+    console.error(err);
+}
+
 
 async function fetchMoveData(nameid) {
     try {
@@ -85,6 +136,18 @@ async function loadWebsite() {
 async function loadTeam() {
     try {
         const text = await fetchTeamData();
+        const teamElements = document.getElementsByClassName("inner-field-box");
+        if (teamElements.length > 0) {
+            for (let i = teamElements.length - 1; i >= 0; i--) {
+                teamElements[i].parentNode.removeChild(teamElements[i]);
+            }
+        }
+        const emptyMessages = document.getElementsByClassName("empty-team-message");
+        if (emptyMessages.length > 0) {
+            for (let i = emptyMessages.length - 1; i >= 0; i--) {
+                emptyMessages[i].parentNode.removeChild(emptyMessages[i]);
+            }
+        }
         if (!(text.startsWith('{')) || text.startsWith('[')) {return}
         const data = JSON.parse(text);
         const teamDiv = document.getElementById("team-content");
@@ -101,9 +164,9 @@ async function loadTeam() {
         }
         for (let i = 0; i < 6; i++) {
             if (data.team_members[i] !== 0 && data.team_members[i] != null && data.team_members[i] !== undefined && data.team_members[i] !== "") {
-                console.log(data.team_members[i])
                 const div = document.createElement("div");
                 div.className = "inner-field-box"
+                div.id = `team-member-${i}`
                 const p = document.createElement("p")
                 p.className = "team-member"
                 p.append(data.team_members[i])
@@ -118,6 +181,7 @@ async function loadTeam() {
                 image.addEventListener("click", async (event) => {
                     event.stopPropagation()
                     await removeTeamMember(data.team_members[i]);
+                    loadTeam();
                 })
                 div.appendChild(image)
                 teamDiv.appendChild(div)
@@ -129,7 +193,6 @@ async function loadTeam() {
 async function removeTeamMember(pokemonId) {
     try {
         const response = await fetch(`/team/remove/${pokemonId}`)
-        window.location.reload()
     } catch (err) {
         console.error(err)
     }

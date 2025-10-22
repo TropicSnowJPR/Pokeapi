@@ -223,9 +223,10 @@ public class PokeApiDBService {
             salt = users.getFirst().getSalt();
         } catch(Exception _) {}
 
-        if(salt == null) {
-            throw new RuntimeException("No salt found for the provided username or email!");
+        if(salt == null || salt.isEmpty()) {
+            throw new RuntimeException("User not found!");
         }
+
 
         return salt;
     }

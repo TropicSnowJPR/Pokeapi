@@ -10,8 +10,8 @@
         <link rel="stylesheet" href="stylesheet/user.css">
     </head>
 
-    <body>
-        <main>
+    <body >
+        <main >
             <div class="header">
                 <div class="right_header">
                     <img src="images/logo.png" class="logo" alt="Logo">
@@ -21,13 +21,13 @@
                 </div>
             </div>
 
-            <div class="main-user-window">
-                <div class="user-window-info">
-                    <div class="frame">
+            <div class="box">
+                <div class="background-box">
+                    <div class="content-box">
                         <form class="personal-info-form" method="POST" enctype="multipart/form-data">
                             <div class="data-div">
                                 <div class="avatar">
-                                    <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
+                                    <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp" onerror="this.src='images/default-pfp.png'">
                                 </div>
                             </div>
                             <input type="file" id="user-pfp-input" name="avatar" accept="image/png, image/jpeg" />

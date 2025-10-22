@@ -21,7 +21,7 @@
                 <div class="right_header">
                     <div class="user-name" id="user-name">
                         <div class="avatar">
-                            <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp">
+                            <img th:src="${pfpurl}" class="user-pfp-img" id="user-pfp-img" alt="user-pfp" onerror="this.src='images/default-pfp.png'">
                         </div>
                         <p id="username" th:text="${name}"></p>
                     </div>

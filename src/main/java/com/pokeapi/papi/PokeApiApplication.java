@@ -25,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
@@ -159,6 +158,18 @@ public class PokeApiApplication {
 
         }
 
+        @GetMapping("/move")
+        @ResponseBody
+        public Map<String, Object> getMove(@RequestParam("id") String id) {
+            Optional<String> s = PokeApiService.getMove(id).describeConstable();
+            if(s.isEmpty())
+                return Map.of("success", false);
+
+            return Map.of(
+                    "success", true,
+                    "move", gson.fromJson(s.get(), Moves.class)
+            );
+        }
 
 
 
@@ -189,12 +200,20 @@ public class PokeApiApplication {
 
             if (!ok) {
                 respMap.put("success", false);
+                respMap.put("error", "Invalid username/email or password");
             } else {
-                respMap.put("success", true);
-                Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.usernameoremail());
-                String cookieValue = PokeApiDBService.createCookie(usersRepository, cookiesRepository, uid);
-                if(cookieValue == null || cookieValue.isEmpty()) {
+                String cookieValue;
+                try {
+                    Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.usernameoremail());
+                    cookieValue = PokeApiDBService.createCookie(usersRepository, cookiesRepository, uid);
+                    if(cookieValue == null || cookieValue.isEmpty()) {
+                        respMap.put("success", false);
+                        respMap.put("error", "Could not create login cookie");
+                        return respMap;
+                    }
+                } catch (Exception e) {
                     respMap.put("success", false);
+                    respMap.put("error", e.getMessage());
                     return respMap;
                 }
 
@@ -207,6 +226,7 @@ public class PokeApiApplication {
                 response.addCookie(cookie);
 
                 respMap.put("loginCookie", cookieValue);
+                respMap.put("success", true);
             }
             return respMap;
         }
@@ -215,14 +235,16 @@ public class PokeApiApplication {
         @ResponseBody
         public Map<String, Object> getSalt(@PathVariable String usernameoremail) {
             Map<String, Object> respMap = new HashMap<>();
-            String salt = PokeApiDBService.getSaltByUsernameOrEmail(usersRepository, usernameoremail);
-            if(salt == null || salt.isEmpty()) {
-                respMap.put("success", false);
-            } else {
+            try {
+                String salt = PokeApiDBService.getSaltByUsernameOrEmail(usersRepository, usernameoremail);
                 respMap.put("success", true);
                 respMap.put("salt", salt);
+                return respMap;
+            } catch (Exception e) {
+                respMap.put("success", false);
+                respMap.put("error", e.getMessage());
+                return respMap;
             }
-            return respMap;
         }
 
 
@@ -244,7 +266,7 @@ public class PokeApiApplication {
 
         @PostMapping("/signup/submit")
         @ResponseBody
-        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) throws IOException {
+        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) {
             Map<String, Object> response = new HashMap<>();
             try {
                 PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
@@ -253,7 +275,7 @@ public class PokeApiApplication {
                 response.put("success", true);
             } catch (Exception err) {
                 response.put("success", false);
-                response.put("error", err);
+                response.put("error", err.getMessage());
                 return response;
             }
             return response;
@@ -307,17 +329,18 @@ public class PokeApiApplication {
                         .filter(cookie -> "loginCookie".equals(cookie.getName()))
                         .findAny();
                 try {
-                    return PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()));
+                    if(loginCookie.isPresent()) { String value = String.valueOf(loginCookie.get().getValue());
+                    return PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, value); }
                 } catch (Exception e) {
-                    logger.error("Error getting team: " + e);
+                    logger.error("Error getting team: {}", String.valueOf(e));
                 }
             }
             return Map.of("success", false);
         }
 
-        @GetMapping("/team/add/{id}")
+        @GetMapping("/team/add/{nameid}")
         @ResponseBody
-        public Map<String, Object> addPokemonToTeam(@PathVariable String id, HttpServletRequest request) {
+        public Map<String, Object> addPokemonToTeam(@PathVariable String nameid, HttpServletRequest request) {
             Cookie[] cookies = request.getCookies();
             if (cookies == null) { return Map.of("success", false); }
             Optional<String> loginCookie = Arrays.stream(cookies)
@@ -325,13 +348,23 @@ public class PokeApiApplication {
                     .map(Cookie::getValue)
                     .findAny();
             if (loginCookie.isEmpty()) { return Map.of("success", false); }
-            PokeApiDBService.addPokemonToTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), id);
-            return Map.of("success", true);
+            if (nameid.matches(".*[a-zA-Z].*")) {
+                Optional<String> s = PokeApiService.getPokemon(nameid);
+                if (s.isEmpty()) { return Map.of("success", false); }
+                Pokemon pokemon = gson.fromJson(s.get(), Pokemon.class);
+                nameid = String.valueOf(pokemon.id());
+            }
+            try {
+                PokeApiDBService.addPokemonToTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), nameid);
+            } catch (Exception e) {
+                return Map.of("success", true);
+            }
+            return Map.of("success", false);
         }
 
-        @GetMapping("/team/remove/{name}")
+        @GetMapping("/team/remove/{nameid}")
         @ResponseBody
-        public Map<String, Object> removePokemonFromTeam(@PathVariable String name, HttpServletRequest request) {
+        public Map<String, Object> removePokemonFromTeam(@PathVariable String nameid, HttpServletRequest request) {
             Cookie[] cookies = request.getCookies();
             if (cookies == null) { return Map.of("success", false); }
             Optional<String> loginCookie = Arrays.stream(cookies)
@@ -339,13 +372,18 @@ public class PokeApiApplication {
                     .map(Cookie::getValue)
                     .findAny();
             if (loginCookie.isEmpty()) { return Map.of("success", false); }
-            Optional<String> s = PokeApiService.getPokemon(name);
-            if (s.isEmpty()) { return Map.of("success", false); }
-            Pokemon pokemon = gson.fromJson(s.get(), Pokemon.class);
-            String id = String.valueOf(pokemon.id());
-            PokeApiDBService.removePokemonFromTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), id);
-            logger.info("Removed pokemon " + id + " from team");
-            return Map.of("success", true);
+            if (nameid.matches(".*[a-zA-Z].*")) {
+                Optional<String> s = PokeApiService.getPokemon(nameid);
+                if (s.isEmpty()) { return Map.of("success", false); }
+                Pokemon pokemon = gson.fromJson(s.get(), Pokemon.class);
+                nameid = String.valueOf(pokemon.id());
+            }
+            try {
+                PokeApiDBService.removePokemonFromTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), nameid);
+            } catch (Exception e) {
+                return Map.of("success", true);
+            }
+            return Map.of("success", false);
         }
 
 
@@ -354,7 +392,7 @@ public class PokeApiApplication {
         @PostMapping("user/uploadpfp")
         @ResponseBody
         public String handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes, HttpServletRequest request) {
-            Map<String, Object> response = new HashMap<>();
+
             Cookie[] cookies = request.getCookies();
             if (cookies == null) { return "error"; }
             Optional<String> loginCookie = Arrays.stream(cookies)

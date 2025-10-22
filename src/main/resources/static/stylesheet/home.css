@@ -1,7 +1,7 @@
 .page-parent {
     display: grid;
-    grid-template-columns: repeat(5, 20%);
-    grid-template-rows: repeat(5, 20%);
+    grid-template-columns: repeat(5, 20% );
+    grid-template-rows: repeat(5, 230px );
     gap: 0px;
 }
 
@@ -15,6 +15,7 @@
     z-index: 1;
     font: inherit;
     height: min-content;
+
 }
 
 #search-document {
@@ -22,15 +23,17 @@
     grid-column-start: 1;
     grid-row-start: 1;
     max-width: 100%;
-    max-height: 20vw;
+    height: 210px;
     padding: 0px;
     justify-content: center;
     justify-items: center;
-    align-content: center;  
+    align-content: center;
     position: relative;
     z-index: 1;
     font: inherit;
     overflow: hidden;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 #pokemon-document {
@@ -39,14 +42,17 @@
     grid-column-start: 1;
     grid-row-start: 2;
     max-width: 100%;
+    height: max-content;
+    margin-bottom: 20px;
     padding: 0px;
     justify-content: center;
     justify-items: center;
-    align-content: center;  
+    align-content: center;
     position: relative;
     z-index: 1;
     font: inherit;
     overflow: hidden;
+    
 }
 
 .search-document h2 {
@@ -69,8 +75,8 @@
     image-rendering: pixelated;
     image-rendering: -moz-crisp-edges;
     image-rendering: crisp-edges;
-    width: 300px;
-    height: 300px;
+    width: 30%;
+    height: 30%;
     margin: 0px;
     display: inline-block;
 
@@ -242,7 +248,9 @@ a {
 }
 
 
-
+td {
+    cursor: pointer;
+}
 
 
 
