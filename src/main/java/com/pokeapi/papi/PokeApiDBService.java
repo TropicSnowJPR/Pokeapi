@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.pokeapi.papi.db.*;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,6 @@ import java.util.*;
 @Component
 public class PokeApiDBService {
 
-    private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final SecureRandom secureRandom = new SecureRandom();
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -45,41 +42,41 @@ public class PokeApiDBService {
         usersRepository.save(user);
     }
 
-    public static void deleteUser(UsersRepository usersRepository, String name) {
-        if(!usersRepository.findByName(name).isEmpty()) {throw new RuntimeException("User does not exist!");}
-        usersRepository.deleteByName(name);
-    }
-
-    public static void changeUsername(UsersRepository usersRepository, String name, String newName) {
-        if(!usersRepository.findByName(newName).isEmpty()) {throw new RuntimeException("Username is already taken!");}
-        List<Users> users = usersRepository.findByName(name);
-        Users user = users.getFirst();
-        user.setName(newName);
-        usersRepository.save(user);
-    }
-
-    public static void changeEmail(UsersRepository usersRepository, String name, String email, String newEmail) {
-        if(usersRepository.findByName(name).isEmpty() || usersRepository.findByEmail(email).isEmpty() || !usersRepository.findByEmail(newEmail).isEmpty()) {throw new RuntimeException("Invalid user or email already taken!");}
-        if(email.equals(newEmail)) {throw new RuntimeException("New email cannot be the same as the old email!");}
-        List<Users> users = usersRepository.findByName(name);
-        Users user = users.getFirst();
-        if(!Objects.equals(user.getEmail(), email)) {throw new RuntimeException("Current email does not match!");}
-        user.setEmail(newEmail);
-        usersRepository.save(user);
-    }
-
-    public static void changePassword(UsersRepository usersRepository, String name, String password, String salt, String newPassword, String newSalt) {
-        if(usersRepository.findByName(name).isEmpty() || usersRepository.findBySalt(salt).isEmpty() || usersRepository.findByPassword(password).isEmpty()) {throw new RuntimeException("Invalid user or password or salt!");}
-        if(password != newPassword && salt != newSalt) {throw new RuntimeException("New password and salt cannot be the same as the old password and salt!");}
-        List<Users> users = usersRepository.findByName(name);
-        Users user = users.getFirst();
-        if(!Objects.equals(user.getPassword(), password) || !Objects.equals(user.getSalt(), salt)) {throw new RuntimeException("Current password or salt does not match!");}
-        if(!Objects.equals(password,newPassword) || !Objects.equals(salt, newSalt)) {throw new RuntimeException("New password or salt cannot be the same as the old password or salt!");}
-        user.setPassword(newPassword);
-        user.setSalt(newSalt);
-        usersRepository.save(user);
-    }
-
+//    public static void deleteUser(UsersRepository usersRepository, String name) {
+//        if(!usersRepository.findByName(name).isEmpty()) {throw new RuntimeException("User does not exist!");}
+//        usersRepository.deleteByName(name);
+//    }
+//
+//    public static void changeUsername(UsersRepository usersRepository, String name, String newName) {
+//        if(!usersRepository.findByName(newName).isEmpty()) {throw new RuntimeException("Username is already taken!");}
+//        List<Users> users = usersRepository.findByName(name);
+//        Users user = users.getFirst();
+//        user.setName(newName);
+//        usersRepository.save(user);
+//    }
+//
+//    public static void changeEmail(UsersRepository usersRepository, String name, String email, String newEmail) {
+//        if(usersRepository.findByName(name).isEmpty() || usersRepository.findByEmail(email).isEmpty() || !usersRepository.findByEmail(newEmail).isEmpty()) {throw new RuntimeException("Invalid user or email already taken!");}
+//        if(email.equals(newEmail)) {throw new RuntimeException("New email cannot be the same as the old email!");}
+//        List<Users> users = usersRepository.findByName(name);
+//        Users user = users.getFirst();
+//        if(!Objects.equals(user.getEmail(), email)) {throw new RuntimeException("Current email does not match!");}
+//        user.setEmail(newEmail);
+//        usersRepository.save(user);
+//    }
+//
+//    public static void changePassword(UsersRepository usersRepository, String name, String password, String salt, String newPassword, String newSalt) {
+//        if(usersRepository.findByName(name).isEmpty() || usersRepository.findBySalt(salt).isEmpty() || usersRepository.findByPassword(password).isEmpty()) {throw new RuntimeException("Invalid user or password or salt!");}
+//        if(password != newPassword && salt != newSalt) {throw new RuntimeException("New password and salt cannot be the same as the old password and salt!");}
+//        List<Users> users = usersRepository.findByName(name);
+//        Users user = users.getFirst();
+//        if(!Objects.equals(user.getPassword(), password) || !Objects.equals(user.getSalt(), salt)) {throw new RuntimeException("Current password or salt does not match!");}
+//        if(!Objects.equals(password,newPassword) || !Objects.equals(salt, newSalt)) {throw new RuntimeException("New password or salt cannot be the same as the old password or salt!");}
+//        user.setPassword(newPassword);
+//        user.setSalt(newSalt);
+//        usersRepository.save(user);
+//    }
+//
     public static boolean validatePassword(UsersRepository usersRepository, String usernameoremail, String password) {
         if(usersRepository.findByPassword(password).isEmpty() || (usersRepository.findByName(usernameoremail).isEmpty() && usersRepository.findByEmail(usernameoremail).isEmpty())) {return false;}
         List<Users> usersByName = usersRepository.findByName(usernameoremail);
@@ -179,16 +176,6 @@ public class PokeApiDBService {
 
 
     // ===================================================== //
-    // * Pokemon Service                                     //
-    // ===================================================== //
-
-    public static void createPokemon(TeamsRepository teamsRepository, Long id, String name) {
-        // NOT NEEDED
-    }
-
-
-
-    // ===================================================== //
     // * Convert Service                                     //
     // ===================================================== //
 
@@ -241,6 +228,9 @@ public class PokeApiDBService {
         if(uid == null) {
             return null;
         }
+        if(usersRepository.findById(uid).isEmpty()) {
+            return null;
+        }
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
         String value = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
@@ -270,6 +260,7 @@ public class PokeApiDBService {
         if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
         Long id = cookies.getFirst().getUid();
+        if(usersRepository.findById(id).isEmpty()) { throw new RuntimeException("User does not exist in db!"); }
         Users user = usersRepository.findById(id).get();
         return user.getName();
     }
@@ -286,7 +277,7 @@ public class PokeApiDBService {
                 team.getMem1(), team.getMem2(), team.getMem3(),
                 team.getMem4(), team.getMem5(), team.getMem6())) {
             if(memberId == null || memberId.isEmpty() || memberId.equals("0")) { continue; }
-            if(!pokemonsRepository.findById(Long.valueOf(memberId)).isEmpty()) {
+            if(pokemonsRepository.findById(Long.valueOf(memberId)).isPresent()) {
                 Pokemons pokemon = pokemonsRepository.findById(Long.valueOf(memberId)).get();
                 String name = pokemon.getName();
                 teamMembers.add(name);

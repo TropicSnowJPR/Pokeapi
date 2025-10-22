@@ -2,7 +2,6 @@ package com.pokeapi.papi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.pokeapi.papi.config.ConfigManager;
 import com.pokeapi.papi.db.CookiesRepository;
 import com.pokeapi.papi.db.PokemonsRepository;
 import com.pokeapi.papi.db.TeamsRepository;
@@ -25,18 +24,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
 @SpringBootApplication(scanBasePackages = "com.pokeapi.papi")
 public class PokeApiApplication {
-
-    public static class MyConfig {
-        public String password = "defaultpassword";
-        public String username = "defaultuser";
-        public String url = "localhost";
-    }
 
     @Autowired
     private UsersRepository usersRepository;
@@ -54,13 +46,6 @@ public class PokeApiApplication {
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static void main(String[] args) throws Exception {
-
-        ConfigManager<MyConfig> cm = new ConfigManager<>(
-                Paths.get("config.yml"),
-                MyConfig.class
-        );
-        cm.load();
-        MyConfig cfg = cm.get();
 
         //PokeApiDB.resetAllCookies(); TODO: ENABLE BEFORE DEPLOYMENT
 
@@ -162,25 +147,21 @@ public class PokeApiApplication {
         @ResponseBody
         public Map<String, Object> getMove(@RequestParam("id") String id) {
             Optional<String> s = PokeApiService.getMove(id).describeConstable();
-            if(s.isEmpty())
-                return Map.of("success", false);
-
-            return Map.of(
+            return s.map(string -> Map.of(
                     "success", true,
-                    "move", gson.fromJson(s.get(), Moves.class)
-            );
+                    "move", gson.fromJson(string, Moves.class)
+            )).orElseGet(() -> Map.of("success", false));
+
         }
 
         @GetMapping("/pokemon-api")
         @ResponseBody
         public Map<String, Object> getPokemonApi(@RequestParam("id") String id) {
             Optional<String> s = PokeApiService.getPokemon(id);
-            if(s.isEmpty())
-                return Map.of("success", false);
-            return Map.of(
+            return s.map(string -> Map.of(
                     "success", true,
-                    "pokemon", gson.fromJson(s.get(), Pokemon.class)
-            );
+                    "pokemon", gson.fromJson(string, Pokemon.class)
+            )).orElseGet(() -> Map.of("success", false));
         }
 
 

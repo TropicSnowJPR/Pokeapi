@@ -9,7 +9,7 @@ import jakarta.inject.Named;
 public class PokeAPI {
 
     private String username;
-    private String password; //TODO: ADD PASSWORD VAR CLEARING OR CAN BE READ BY FRONTEND (NEED TO LOOK INTO @RequestScoped)
+    private String password;
     private String email;
 
     // Constructor
