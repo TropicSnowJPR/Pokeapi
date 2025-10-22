@@ -151,7 +151,7 @@ async function fetchPokemon(name) {
     try {
         if (fetchPokemonLock) {
             return
-        }   
+        }
 
         fetchPokemonLock = true
         name = name.replace("- ", "").trim();

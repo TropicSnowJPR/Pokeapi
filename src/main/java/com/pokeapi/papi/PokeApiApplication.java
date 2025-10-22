@@ -134,18 +134,18 @@ public class PokeApiApplication {
             modelAndView.addObject("pokemon", pokemon);
 
             final List<Pair<Integer, String>> GENERATIONS = new ArrayList<>() {{
-                add(new Pair<>(151, "gen I"));
-                add(new Pair<>(251, "gen II"));
-                add(new Pair<>(386, "gen III"));
-                add(new Pair<>(493, "gen IV"));
-                add(new Pair<>(649, "gen V"));
-                add(new Pair<>(721, "gen VI"));
-                add(new Pair<>(809, "gen VII"));
-                add(new Pair<>(905, "gen VIII"));
-                add(new Pair<>(1025, "gen IX"));
+                add(new Pair<>(151, "Gen I"));
+                add(new Pair<>(251, "Gen II"));
+                add(new Pair<>(386, "Gen III"));
+                add(new Pair<>(493, "Gen IV"));
+                add(new Pair<>(649, "Gen V"));
+                add(new Pair<>(721, "Gen VI"));
+                add(new Pair<>(809, "Gen VII"));
+                add(new Pair<>(905, "Gen VIII"));
+                add(new Pair<>(1025, "Gen IX"));
             }};
 
-            String gen = "gen X";
+            String gen = "Gen X";
             for (Pair<Integer, String> g : GENERATIONS) {
                 if (pokemon.id() <= g.a) {
                     gen = g.b;
@@ -158,7 +158,7 @@ public class PokeApiApplication {
 
         }
 
-        @GetMapping("/move")
+        @GetMapping("/move-api")
         @ResponseBody
         public Map<String, Object> getMove(@RequestParam("id") String id) {
             Optional<String> s = PokeApiService.getMove(id).describeConstable();
@@ -168,6 +168,18 @@ public class PokeApiApplication {
             return Map.of(
                     "success", true,
                     "move", gson.fromJson(s.get(), Moves.class)
+            );
+        }
+
+        @GetMapping("/pokemon-api")
+        @ResponseBody
+        public Map<String, Object> getPokemonApi(@RequestParam("id") String id) {
+            Optional<String> s = PokeApiService.getPokemon(id);
+            if(s.isEmpty())
+                return Map.of("success", false);
+            return Map.of(
+                    "success", true,
+                    "pokemon", gson.fromJson(s.get(), Pokemon.class)
             );
         }
 
