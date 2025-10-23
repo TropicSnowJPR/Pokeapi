@@ -49,6 +49,49 @@ try {
     console.error(err);
 }
 
+
+async function loadTypeColorIndicators() {
+    document.querySelectorAll(".type-indicator").forEach(el => {
+        if (el.textContent.toLowerCase().includes("psychic")) {
+            el.style.color = "#F95587";
+        } else if (el.textContent.toLowerCase().includes("fire")) {
+            el.style.color = "#EE8130";
+        } else if (el.textContent.toLowerCase().includes("water")) {
+            el.style.color = "#6390F0";
+        } else if (el.textContent.toLowerCase().includes("grass")) {
+            el.style.color = "#7AC74C";
+        } else if (el.textContent.toLowerCase().includes("electric")) {
+            el.style.color = "#F7D02C";
+        } else if (el.textContent.toLowerCase().includes("ice")) {
+            el.style.color = "#96D9D6";
+        } else if (el.textContent.toLowerCase().includes("dragon")) {
+            el.style.color = "#6F35FC";
+        } else if (el.textContent.toLowerCase().includes("dark")) {
+            el.style.color = "#705746";
+        } else if (el.textContent.toLowerCase().includes("fairy")) {
+            el.style.color = "#D685AD";
+        } else if (el.textContent.toLowerCase().includes("normal")) {
+            el.style.color = "#A8A77A";
+        } else if (el.textContent.toLowerCase().includes("fighting")) {
+            el.style.color = "#C22E28";
+        } else if (el.textContent.toLowerCase().includes("flying")) {
+            el.style.color = "#A98FF3";
+        } else if (el.textContent.toLowerCase().includes("poison")) {
+            el.style.color = "#A33EA1";
+        } else if (el.textContent.toLowerCase().includes("ground")) {
+            el.style.color = "#E2BF65";
+        } else if (el.textContent.toLowerCase().includes("rock")) {
+            el.style.color = "#B6A136";
+        } else if (el.textContent.toLowerCase().includes("bug")) {
+            el.style.color = "#A6B91A";
+        } else if (el.textContent.toLowerCase().includes("ghost")) {
+            el.style.color = "#735797";
+        } else if (el.textContent.toLowerCase().includes("steel")) {
+            el.style.color = "#B7B7CE";
+        }
+    });
+}
+
 async function loadAddToTeamButton() {
     document.getElementById("add-to-team").addEventListener("click", async () => {
         const params = new URLSearchParams(window.location.search);
@@ -65,6 +108,7 @@ async function loadAddToTeamButton() {
             const response = await fetch(`/team/add/${nameid}`);
             if (response.ok) {
                 await loadTeam();
+                await loadTeamDetails();
             } else {
                 throw new Error("Failed to add team member");
             }
@@ -74,13 +118,66 @@ async function loadAddToTeamButton() {
     });
 }
 
+async function loadTeamDetails() {
+    try {
+        const res = await fetch("/team-api");
+        if (!res.ok) throw new Error("Fetch failed");
+        const data = await res.json();
+        document.getElementById("team-size").innerText = `Team Size: ${data.teamSize} / 6`;
+        let typesHtml = "Team Types: <table>";
+        if (Array.isArray(data.teamTypesUnique) && data.teamTypesUnique.length > 0) {
+            for (const type of data.teamTypesUnique) {
+                if (data.teamTypeCounts[type] !== null) {
+                    typesHtml += `<tr><td>${data.teamTypeCounts[type]}x </td><td><span class="type-indicator">⬤ ${type.charAt(0).toUpperCase() + type.slice(1)}</span>`;
+                } else {
+                    typesHtml += `<tr><td>1x</td><td>${type}`;
+                }
+            }
+        } else {
+            typesHtml += "None";
+        }
+        typesHtml += "</table>";
+        document.getElementById("team-types").innerHTML = typesHtml;
+
+        let weaknessesHtml = "Team Weaknesses: <table>";
+        if (Array.isArray(data.teamWeaknesses) && data.teamWeaknesses.length > 0) {
+            for (const type of data.teamWeaknesses) {
+                weaknessesHtml += `<tr><td><span class="type-indicator">⬤ ${type}</span></td></tr>`;
+            }
+        } else {
+            weaknessesHtml += "None";
+        }
+        weaknessesHtml += "</table>";
+        document.getElementById("team-weaknesses").innerHTML = weaknessesHtml;
+
+        await loadTypeColorIndicators();
+
+        let statsHtml = "Team Stats Average: ";
+        if (Array.isArray(data.teamStats) && data.teamStats.length > 0) {
+            statsHtml += `<table>${data.teamStats.map(stat => `<tr><td>${stat.name}</td><td>${stat.value}</td></tr>`).join("")}</table>`;
+        } else if (data.teamStats && typeof data.teamStats === "object") {
+            const entries = Object.entries(data.teamStats);
+            if (entries.length > 0) {
+                statsHtml += `<table>${entries.map(([k, v]) => `<tr><td>${k.replace("-", " ")}</td><td>${v}</td></tr>`).join("")}</table>`;
+            } else {
+                statsHtml += "N/A";
+            }
+        } else {
+            statsHtml += "N/A";
+        }
+        document.getElementById("team-average-stats").innerHTML = statsHtml;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 async function loadMoveTooltips() {
     for (const el of document.getElementsByClassName("move")) {
         el.addEventListener("mouseover", async () => {
             const moveName = el.textContent.trim();
 
             try {
-                const res = await fetch(`/move-api?id=${encodeURIComponent(moveName)}`);
+                const res = await fetch(`/move-api?id=${encodeURIComponent(moveName.replace(" ", "-"))}`);
                 if (!res.ok) throw new Error("Fetch failed");
 
                 const data = await res.json();
@@ -114,6 +211,32 @@ async function loadMoveTooltips() {
     }
 }
 
+async function getMoveData(moveName) {
+    try {
+        const res = await fetch(`/move-api?id=${encodeURIComponent(moveName.replace(" ", "-"))}`);
+        if (!res.ok) throw new Error("Fetch failed");
+
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.error(`Error fetching data for ${moveName}:`, err);
+        return null;
+    }
+}
+
+async function getMoveTypes(id) {
+    try {
+        const res = await fetch(`/move-types-api?id=${encodeURIComponent(id)}`);
+        if (!res.ok) throw new Error("Fetch failed");
+
+        const data = await res.json();
+        return data;
+    } catch (err) {
+        console.error(`Error fetching move types:`, err);
+        return null;
+    }
+}
+
 async function fetchTeamData() {
     try {
         if (fetchTeamLock) {return}
@@ -139,12 +262,24 @@ async function fetchPokemonData(nameid) {
 async function loadWebsite() {
     try {
         await loadTeam()
+        await loadTeamDetails()
+        await loadMoveTooltips()
+        const params = new URLSearchParams(window.location.search);
+        const idFromUrl = params.get("id");
+        let nameid = null;
+        if (idFromUrl) {
+            nameid = idFromUrl.trim();
+        } else {
+            console.error("No pokemon id found in input or URL");
+            return;
+        }
+        await loadPokemon(nameid);
     } catch (err) {console.error("Error:", err);}
 }
 
-async function loadPokemon(nameid) {
+async function loadPokemon(id) {
     try {
-        const text = await fetchPokemonData(nameid);
+        const text = await fetchPokemonData(id);
         const data = await JSON.parse(text);
         const generations = [{ max: 151, name: "Gen I" },{ max: 251, name: "Gen II" },{ max: 386, name: "Gen III" },{ max: 493, name: "Gen IV" },{ max: 649, name: "Gen V" },{ max: 721, name: "Gen VI" },{ max: 809, name: "Gen VII" },{ max: 905, name: "Gen VIII" },];
         let gen = "Gen IX";
@@ -156,13 +291,33 @@ async function loadPokemon(nameid) {
         document.getElementById("pokemon-weight").innerHTML = `<h4 id="weight-header">Weight: ${data.pokemon.weight}</h4>`;
         document.getElementById("pokemon-types").innerHTML = `<h4 id="types-header">Types: ${data.pokemon.types.map((t) => t.inner.name).join(", ")}</h4>`;
         document.getElementById("pokemon-generation").innerHTML = `<h4 id="generation-header">Generation: ${gen}</h4>`;
-        document.getElementById("pokemon-stats").innerHTML = "<h4 id=\"stats-header\">Stats:" + "<table>" + data.pokemon.stats.map((s) => `<tr><td>${s.inner.name}</td><td>${s.baseStat}</td></tr>`).join('') + "</table></h4>";
-        document.getElementById("pokemon-abilities").innerHTML = `<h4 id="abilities-header">Abilities: ${data.pokemon.abilities.map((a) => a.inner.name).join(" ")}</h4>`;
+        document.getElementById("pokemon-stats").innerHTML = "<h4 id=\"stats-header\">Stats:" + "<table>" + data.pokemon.stats.map((s) => `<tr><td>${(s.inner.name).replace("-", " ")}</td><td>${s.baseStat}</td></tr>`).join('') + "</table></h4>";
+        document.getElementById("pokemon-abilities").innerHTML = `<h4 id="abilities-header">Abilities: ${data.pokemon.abilities.map((a) => (a.inner.name).replace("-", " ")).join(", ")}</h4>`;
         document.getElementById("pokemon-forms").innerHTML = `<h4 id="forms-header">Forms: ${data.pokemon.forms.map((f) => f.name).join(" ")}</h4>`;
         document.getElementById("latest-cry").src = data.pokemon.cries.latest || "./audio/default.ogg";
         document.getElementById("legacy-cry").src = data.pokemon.cries.legacy || "./audio/default.ogg";
-        document.getElementById("pokemon-moves").innerHTML = "<h4 id=\"move-header\">Moves:" + "<table>" + data.pokemon.moves.map((m) => `<tr><td class="move">${m.inner.name}</td></tr>`).join('') + "</table>" + "</h4>";
+        document.getElementById("pokemon-moves").innerHTML = "<h4 id=\"move-header\">Moves:" + "<table>" + data.pokemon.moves.map((m) => `<tr><td class="move">${(m.inner.name).replace("-", " ")}</td></tr>`).join('') + "</table>" + "</h4>";
+        const params = new URLSearchParams(window.location.search);
+        const idFromUrl = params.get("id");
+        let nameid = null;
+        if (idFromUrl) {
+            nameid = idFromUrl.trim();
+        } else {
+            console.error("No pokemon id found in input or URL");
+            return;
+        }
+        const moveTypesData = await getMoveTypes(nameid);
+        let moveTypesHtml = "<table>";
+        for (const type in moveTypesData.moveTypeCounts) {
+            if (moveTypesData.moveTypeCounts[type] !== null) {
+                moveTypesHtml += `<tr><td>${moveTypesData.moveTypeCounts[type]}x </td><td><span class="type-indicator">⬤ ${type.charAt(0).toUpperCase() + type.slice(1)}</span></td></tr>`;
+            }
+        }
+        moveTypesHtml += "</table>";
+
+        document.getElementById("pokemon-move-types").innerHTML = `<h4 id="move-types-header">Move Types: ${moveTypesHtml}</h4>`;
         await loadMoveTooltips();
+        await loadTypeColorIndicators();
         const newUrl = `/pokemon?id=${data.pokemon.id}`;
         window.history.pushState(null, '', newUrl);
         await loadAddToTeamButton();
@@ -220,6 +375,7 @@ async function loadTeam() {
                     event.stopPropagation()
                     await removeTeamMember(data.team_members[i]);
                     loadTeam();
+                    await loadTeamDetails()
                 })
                 div.appendChild(image)
                 teamDiv.appendChild(div)

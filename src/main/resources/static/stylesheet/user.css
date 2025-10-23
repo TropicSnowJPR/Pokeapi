@@ -16,3 +16,8 @@
     object-fit: cover;       /* crop to fill without warping */
     display: block;
 }
+
+.box {
+    height: 375px;
+    padding-top: 2px;
+}

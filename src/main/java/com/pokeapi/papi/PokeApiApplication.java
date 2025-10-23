@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -76,20 +77,9 @@ public class PokeApiApplication {
 
         // -------- HOME PAGE --------
         @GetMapping("/")
-        public Object getHomePage(HttpServletRequest request) {
-            Cookie[] cookies = request.getCookies();
-            if (cookies != null) {
-                Optional<Cookie> loginCookie = Arrays.stream(cookies)
-                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
-                        .findAny();
-                if (loginCookie.isPresent() && PokeApiDBService.validateCookie(cookiesRepository, loginCookie.get().getValue())) {
-                    ModelAndView modelAndView = new ModelAndView("homeempty");
-                    modelAndView.addObject("name", (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))));
-                    modelAndView.addObject("pfpurl", "/papipfps/" + (PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()))) + "/pfp.png");
-                    return modelAndView;
-                }
-            }
-            return "redirect:/login";
+        public Object getHomePage() {
+            SecureRandom sr = new SecureRandom();
+            return "redirect:/pokemon?id=" + sr.nextInt(1025) + 1;
         }
 
         @GetMapping("/pokemon")
@@ -145,7 +135,7 @@ public class PokeApiApplication {
 
         @GetMapping("/move-api")
         @ResponseBody
-        public Map<String, Object> getMove(@RequestParam("id") String id) {
+        public Map<String, Object> getMoveApi(@RequestParam("id") String id) {
             Optional<String> s = PokeApiService.getMove(id).describeConstable();
             return s.map(string -> Map.of(
                     "success", true,
@@ -179,9 +169,6 @@ public class PokeApiApplication {
                     }
 
                     Map<String, Object> team = PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, value);
-                    if (team == null) {
-                        return Map.of("success", false);
-                    }
 
                     Object memObj = team.get("team_members");
                     String[] memArr;
@@ -212,6 +199,7 @@ public class PokeApiApplication {
 
                     List<String> TeamTypes = new ArrayList<>();
                     List<String> TeamTypesUnique;
+                    List<String> TeamWeaknesses = new ArrayList<>();
                     Map<String, Integer> TeamTypeCounts = new HashMap<>();
 
                     int TeamSize = 0;
@@ -281,10 +269,52 @@ public class PokeApiApplication {
                         }
                     }
 
+                    record Weakness(String type, String weakness_1, Optional<String> weakness_2, Optional<String> weakness_3, Optional<String> weakness_4, Optional<String> weakness_5, Optional<String> weakness_6, Optional<String> weakness_7) {
+                    }
+
+                    final List<Weakness> WEAKNESSES = new ArrayList<>() {{
+                        add(new Weakness("Normal", "Rock", Optional.of("Rock"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Fire", "Fire", Optional.of("Water"), Optional.of("Rock"), Optional.of("Dragon"), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Water", "Water", Optional.of("Grass"), Optional.of("Dragon"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Electric", "Electric", Optional.of("Grass"), Optional.of("Dragon"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Grass", "Fire", Optional.of("Grass"), Optional.of("Poison"), Optional.of("Flying"), Optional.of("Bug"), Optional.of("Dragon"), Optional.of("Steel")));
+                        add(new Weakness("Ice", "Fire", Optional.of("Water"), Optional.of("Ice"), Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Fighting", "Poison", Optional.of("Flying"), Optional.of("Psychic"), Optional.of("Bug"), Optional.of("Fairy"), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Poison", "Poison", Optional.of("Ground"), Optional.of("Rock"), Optional.of("Ghost"), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Ground", "Grass", Optional.of("Bug"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Flying", "Electric", Optional.of("Rock"), Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Psychic", "Psychic", Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Bug", "Fire", Optional.of("Fighting"), Optional.of("Flying"), Optional.of("Ghost"), Optional.of("Steel"), Optional.of("Fairy"), Optional.empty()));
+                        add(new Weakness("Rock", "Fighting", Optional.of("Ground"), Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Ghost", "Dark", Optional.of("Ghost"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Dragon", "Steel", Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Dark", "Fighting", Optional.of("Dark"), Optional.of("Fairy"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Steel", "Fire", Optional.of("Water"), Optional.of("Electric"), Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty()));
+                        add(new Weakness("Fairy", "Fire", Optional.of("Poison"), Optional.of("Steel"), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty()));
+                    }};
+
+                    List WeaknessTypes = new ArrayList();
+                    for (String t : TeamTypesUnique) {
+                        for (Weakness w : WEAKNESSES) {
+                            if (w.type().equalsIgnoreCase(t)) {
+                                WeaknessTypes.add(w.weakness_1());
+                                w.weakness_2().ifPresent(WeaknessTypes::add);
+                                w.weakness_3().ifPresent(WeaknessTypes::add);
+                                w.weakness_4().ifPresent(WeaknessTypes::add);
+                                w.weakness_5().ifPresent(WeaknessTypes::add);
+                                w.weakness_6().ifPresent(WeaknessTypes::add);
+                                w.weakness_7().ifPresent(WeaknessTypes::add);
+                            }
+                        }
+                    }
+
+                    WeaknessTypes = new ArrayList<>(new LinkedHashSet<>(WeaknessTypes));
+
                     return Map.of(
                             "success", true,
                             //"teamTypes", TeamTypes, Uncomment if you want repeated types
                             "teamTypesUnique", TeamTypesUnique,
+                            "teamWeaknesses", WeaknessTypes,
                             "teamTypeCounts", TeamTypeCounts,
                             "teamSize", TeamSize,
                             "teamStats", TeamStats
@@ -297,6 +327,105 @@ public class PokeApiApplication {
             return Map.of("success", false);
         }
 
+        @GetMapping("/move-types-api")
+        @ResponseBody
+        public Map<String, Object> getMoveTypesApi(HttpServletRequest request, @RequestParam("id") String id) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return Map.of("success", false);
+            }
+                Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                        .findAny();
+            if (loginCookie.isEmpty()) {
+                return Map.of("success", false);
+                    }
+
+                    try {
+                // Resolve the pokemon JSON (accepts name or id)
+                Optional<String> pjsonOpt = PokeApiService.getPokemon(id);
+                if (pjsonOpt.isEmpty()) {
+                    return Map.of("success", false);
+                    }
+
+                // Parse pokemon to Map to extract moves and types
+                Map<?, ?> pmap = gson.fromJson(pjsonOpt.get(), Map.class);
+
+                // Get pokemon types
+                Set<String> pokemonTypes = new LinkedHashSet<>();
+                Object typesObj = pmap.get("types");
+                        if (typesObj instanceof List) {
+                            for (Object tEntry : (List<?>) typesObj) {
+                                if (!(tEntry instanceof Map)) continue;
+                                Map<?, ?> tmap = (Map<?, ?>) tEntry;
+                                Object typeInner = tmap.get("type");
+                                String typeName = null;
+                                if (typeInner instanceof Map) {
+                                    typeName = String.valueOf(((Map<?, ?>) typeInner).get("name"));
+                                } else if (tmap.get("name") != null) {
+                                    typeName = String.valueOf(tmap.get("name"));
+                    }
+                                if (typeName != null && !typeName.isBlank()) {
+                            pokemonTypes.add(typeName);
+                        }
+                    }
+                                }
+
+                // Get moves list
+                Object movesObj = pmap.get("moves");
+                List<?> movesList = (movesObj instanceof List) ? (List<?>) movesObj : Collections.emptyList();
+
+                Map<String, Integer> moveTypeCounts = new HashMap<>();
+                int totalMovesConsidered = 0;
+                int matchCount = 0;
+
+                for (Object mEntry : movesList) {
+                    if (!(mEntry instanceof Map)) continue;
+                    Map<?, ?> mmap = (Map<?, ?>) mEntry;
+                    Object moveInner = mmap.get("move");
+                    String moveName = null;
+                    if (moveInner instanceof Map) {
+                        moveName = String.valueOf(((Map<?, ?>) moveInner).get("name"));
+                    } else if (mmap.get("name") != null) {
+                        moveName = String.valueOf(mmap.get("name"));
+                            }
+                    if (moveName == null || moveName.isBlank()) continue;
+
+                    Optional<String> moveJsonOpt = PokeApiService.getMove(moveName).describeConstable();
+                    if (moveJsonOpt.isEmpty()) continue;
+
+                    Map<?, ?> movemap = gson.fromJson(moveJsonOpt.get(), Map.class);
+                    Object typeObj = movemap.get("type");
+                    String moveType = null;
+                    if (typeObj instanceof Map) {
+                        moveType = String.valueOf(((Map<?, ?>) typeObj).get("name"));
+                    } else if (movemap.get("name") != null) {
+                        moveType = String.valueOf(movemap.get("name"));
+                        }
+                    if (moveType == null || moveType.isBlank()) continue;
+
+                    moveTypeCounts.merge(moveType, 1, Integer::sum);
+                    totalMovesConsidered++;
+                    if (pokemonTypes.contains(moveType)) matchCount++;
+                    }
+
+                List<String> uniqueMoveTypes = new ArrayList<>(new LinkedHashSet<>(moveTypeCounts.keySet()));
+                double matchPercentage = totalMovesConsidered > 0 ? (matchCount * 100.0 / totalMovesConsidered) : 0.0;
+
+                    return Map.of(
+                            "success", true,
+                        "pokemonTypes", new ArrayList<>(pokemonTypes),
+                        "uniqueMoveTypes", uniqueMoveTypes,
+                        "moveTypeCounts", moveTypeCounts,
+                        "totalMoves", totalMovesConsidered,
+                        "matchCount", matchCount,
+                        "matchPercentage", matchPercentage
+                    );
+                } catch(Exception e){
+                logger.error("Error getting move types for pokemon {}: {}", id, String.valueOf(e));
+                }
+            return Map.of("success", false);
+        }
 
 
 

@@ -110,7 +110,7 @@ p {
     margin: 0;
     backdrop-filter: blur(12px);
     background-color: #EF5350;
-    box-shadow: 0px 4px 0px 1px rgba(99, 99, 99, 0.6);
+    box-shadow: 0px 6px 0px 1px rgba(99, 99, 99, 0.6);
     z-index: 10;
 
 }
@@ -154,14 +154,14 @@ p {
 /* Box Styles */
 
 .box {
-    box-shadow: 4px 4px 0px 1px rgb(99, 99, 99, 0.6);
+    box-shadow: 6px 6px 0px 1px rgb(99, 99, 99, 0.6);
     background: #263238;
     border-radius: 55px;
     display: block;
-    overflow: hidden;
     margin-left: 10px;
     margin-bottom: 10px;
     margin-right: 10px;
+
 }
 
 .background-box {
@@ -169,7 +169,7 @@ p {
 }
 
 .content-box {
-    box-shadow: inset 4px 4px 0px 1px rgb(99, 99, 99, 0.6);
+    box-shadow: inset 6px 6px 0px 1px rgb(99, 99, 99, 0.6);
     margin: 30px;
     padding: 20px;
     border-radius: 25px;
@@ -178,7 +178,7 @@ p {
     z-index: 1;
     color: #263238;
     font: inherit;
-    max-width: 200%
+    max-width: 200%;
 }
 
 .inner-content-box {

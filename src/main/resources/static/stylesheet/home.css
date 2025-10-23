@@ -31,7 +31,6 @@
     position: relative;
     z-index: 1;
     font: inherit;
-    overflow: hidden;
     margin-top: 0px;
     margin-bottom: 0px;
 }
@@ -51,7 +50,6 @@
     position: relative;
     z-index: 1;
     font: inherit;
-    overflow: hidden;
     
 }
 
