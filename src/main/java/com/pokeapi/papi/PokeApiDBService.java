@@ -265,7 +265,6 @@ public class PokeApiDBService {
         return user.getName();
     }
 
-
     public static Map<String, Object> getTeamFromCookie( PokemonsRepository pokemonsRepository, TeamsRepository teamsRepository, CookiesRepository cookiesRepository, String value) {
         if(cookiesRepository.findByValue(value).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
         List<Cookies> cookies = cookiesRepository.findByValue(value);
@@ -295,7 +294,5 @@ public class PokeApiDBService {
         }
         return Map.of("team_members", teamMembers);
     }
-
-
 
 }

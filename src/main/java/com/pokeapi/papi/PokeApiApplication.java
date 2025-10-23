@@ -164,6 +164,140 @@ public class PokeApiApplication {
             )).orElseGet(() -> Map.of("success", false));
         }
 
+        @GetMapping("/team-api")
+        @ResponseBody
+        public Map<String, Object> getTeamApi(HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                        .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                        .findAny();
+                try {
+                    String value = null;
+                    if (loginCookie.isPresent()) {
+                        value = loginCookie.get().getValue();
+                    }
+
+                    Map<String, Object> team = PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, value);
+                    if (team == null) {
+                        return Map.of("success", false);
+                    }
+
+                    Object memObj = team.get("team_members");
+                    String[] memArr;
+
+                    try {
+                        memArr = gson.fromJson(gson.toJson(memObj), String[].class);
+                        if (memArr == null) memArr = new String[0];
+                        memArr = Arrays.stream(memArr).map(String::trim).toArray(String[]::new);
+                    } catch (Exception e) {
+                        memArr = new String[0];
+                    }
+
+                    String mem1 = memArr.length > 0 ? memArr[0] : null;
+                    String mem2 = memArr.length > 1 ? memArr[1] : null;
+                    String mem3 = memArr.length > 2 ? memArr[2] : null;
+                    String mem4 = memArr.length > 3 ? memArr[3] : null;
+                    String mem5 = memArr.length > 4 ? memArr[4] : null;
+                    String mem6 = memArr.length > 5 ? memArr[5] : null;
+
+
+
+                    List<Map<String, Object>> pmaps = new ArrayList<>();
+                    for (String mem : Arrays.asList(mem1, mem2, mem3, mem4, mem5, mem6)) {
+                        if (mem == null || mem.isBlank()) continue;
+                        Map<String, Object> pmap = getPokemonApi(mem);
+                        pmaps.add(pmap);
+                    }
+
+                    List<String> TeamTypes = new ArrayList<>();
+                    List<String> TeamTypesUnique;
+                    Map<String, Integer> TeamTypeCounts = new HashMap<>();
+
+                    int TeamSize = 0;
+                    Map<String, Integer> TeamStatsSum = new HashMap<>();
+
+                    for (Map<String, Object> pmap : pmaps) {
+                        if (pmap == null) continue;
+                        Object pobj = pmap.get("pokemon");
+                        if (pobj == null) continue;
+
+                        String pjson = gson.toJson(pobj);
+                        Map<?, ?> p = gson.fromJson(pjson, Map.class);
+
+                        Object typesObj = p.get("types");
+                        if (typesObj instanceof List) {
+                            for (Object tEntry : (List<?>) typesObj) {
+                                if (!(tEntry instanceof Map)) continue;
+                                Map<?, ?> tmap = (Map<?, ?>) tEntry;
+                                Object typeInner = tmap.get("type");
+                                String typeName = null;
+                                if (typeInner instanceof Map) {
+                                    typeName = String.valueOf(((Map<?, ?>) typeInner).get("name"));
+                                } else if (tmap.get("name") != null) {
+                                    typeName = String.valueOf(tmap.get("name"));
+                                }
+                                if (typeName != null && !typeName.isBlank()) {
+                                    TeamTypes.add(typeName);
+                                    TeamTypeCounts.merge(typeName, 1, Integer::sum);
+                                }
+                            }
+                        }
+
+                        Object statsObj = p.get("stats");
+                        if (statsObj instanceof List) {
+                            for (Object sEntry : (List<?>) statsObj) {
+                                if (!(sEntry instanceof Map)) continue;
+                                Map<?, ?> smap = (Map<?, ?>) sEntry;
+                                String statName = null;
+                                Object statInner = smap.get("stat");
+                                if (statInner instanceof Map) {
+                                    statName = String.valueOf(((Map<?, ?>) statInner).get("name"));
+                                } else if (smap.get("name") != null) {
+                                    statName = String.valueOf(smap.get("name"));
+                                }
+                                int base = 0;
+                                Object baseObj = smap.get("base_stat");
+                                if (baseObj instanceof Number) {
+                                    base = ((Number) baseObj).intValue();
+                                } else if (baseObj != null) {
+                                    try { base = Integer.parseInt(String.valueOf(baseObj)); } catch (Exception ignored) {}
+                                }
+                                if (statName != null) {
+                                    TeamStatsSum.merge(statName, base, Integer::sum);
+                                }
+                            }
+                        }
+
+                        TeamSize++;
+                    }
+
+                    TeamTypesUnique = new ArrayList<>(new LinkedHashSet<>(TeamTypes));
+
+                    Map<String, Integer> TeamStats = new HashMap<>();
+                    if (TeamSize > 0) {
+                        for (Map.Entry<String, Integer> e : TeamStatsSum.entrySet()) {
+                            TeamStats.put(e.getKey(), e.getValue() / TeamSize);
+                        }
+                    }
+
+                    return Map.of(
+                            "success", true,
+                            //"teamTypes", TeamTypes, Uncomment if you want repeated types
+                            "teamTypesUnique", TeamTypesUnique,
+                            "teamTypeCounts", TeamTypeCounts,
+                            "teamSize", TeamSize,
+                            "teamStats", TeamStats
+                    );
+
+                } catch (Exception e) {
+                    logger.error("Error getting team: {}", String.valueOf(e));
+                }
+            }
+            return Map.of("success", false);
+        }
+
+
 
 
         // -------- LOGIN PAGE --------

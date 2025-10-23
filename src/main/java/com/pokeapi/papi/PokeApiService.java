@@ -43,8 +43,6 @@ public class PokeApiService {
 
     }
 
-
-
     public static String getMove(String moveid) {
 
         if (moveid == null || moveid.isEmpty()) {
