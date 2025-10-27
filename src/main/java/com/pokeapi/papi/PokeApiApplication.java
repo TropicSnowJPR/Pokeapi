@@ -48,7 +48,11 @@ public class PokeApiApplication {
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+
+
     public static void main(String[] args) throws Exception {
+
+        org.springframework.context.ConfigurableApplicationContext ctx = SpringApplication.run(PokeApiApplication.class, args);
 
         String ip;
 
@@ -59,9 +63,10 @@ public class PokeApiApplication {
             ip = "";
         };
 
-        SpringApplication.run(PokeApiApplication.class, args);
+        String port = ctx.getEnvironment().getProperty("local.server.port",
+                ctx.getEnvironment().getProperty("server.port", "8080"));
 
-        logger.info("Started PokeAPI PAPI Application at IP: https://{}:8081", ip);
+        logger.info("Started PokeAPI PAPI Application at IP: https://{}:{}", ip, port);
     }
 
 
