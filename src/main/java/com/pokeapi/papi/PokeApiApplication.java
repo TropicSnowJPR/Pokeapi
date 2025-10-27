@@ -66,7 +66,7 @@ public class PokeApiApplication {
         String port = ctx.getEnvironment().getProperty("local.server.port",
                 ctx.getEnvironment().getProperty("server.port", "8080"));
 
-        logger.info("Started PokeAPI PAPI Application at IP: https://{}:{}", ip, port);
+        logger.info("Started Application at: https://{}:{}", ip, port);
     }
 
 
@@ -331,9 +331,7 @@ public class PokeApiApplication {
                             "teamStats", TeamStats
                     );
 
-                } catch (Exception e) {
-                    logger.error("Error getting team: {}", String.valueOf(e));
-                }
+                } catch (Exception _) {}
             }
             return Map.of("success", false);
         }
@@ -353,16 +351,14 @@ public class PokeApiApplication {
                     }
 
                     try {
-                // Resolve the pokemon JSON (accepts name or id)
+
                 Optional<String> pjsonOpt = PokeApiService.getPokemon(id);
                 if (pjsonOpt.isEmpty()) {
                     return Map.of("success", false);
                     }
 
-                // Parse pokemon to Map to extract moves and types
                 Map<?, ?> pmap = gson.fromJson(pjsonOpt.get(), Map.class);
 
-                // Get pokemon types
                 Set<String> pokemonTypes = new LinkedHashSet<>();
                 Object typesObj = pmap.get("types");
                         if (typesObj instanceof List) {
@@ -374,14 +370,14 @@ public class PokeApiApplication {
                                     typeName = String.valueOf(((Map<?, ?>) typeInner).get("name"));
                                 } else if (tmap.get("name") != null) {
                                     typeName = String.valueOf(tmap.get("name"));
-                    }
-                                if (typeName != null && !typeName.isBlank()) {
-                            pokemonTypes.add(typeName);
-                        }
-                    }
                                 }
+                                if (typeName != null && !typeName.isBlank()) {
+                                    pokemonTypes.add(typeName);
+                                }
+                            }
+                        }
 
-                // Get moves list
+
                 Object movesObj = pmap.get("moves");
                 List<?> movesList = (movesObj instanceof List) ? (List<?>) movesObj : Collections.emptyList();
 
@@ -397,7 +393,7 @@ public class PokeApiApplication {
                         moveName = String.valueOf(((Map<?, ?>) moveInner).get("name"));
                     } else if (mmap.get("name") != null) {
                         moveName = String.valueOf(mmap.get("name"));
-                            }
+                    }
                     if (moveName == null || moveName.isBlank()) continue;
 
                     Optional<String> moveJsonOpt = PokeApiService.getMove(moveName).describeConstable();
@@ -410,7 +406,7 @@ public class PokeApiApplication {
                         moveType = String.valueOf(((Map<?, ?>) typeObj).get("name"));
                     } else if (movemap.get("name") != null) {
                         moveType = String.valueOf(movemap.get("name"));
-                        }
+                    }
                     if (moveType == null || moveType.isBlank()) continue;
 
                     moveTypeCounts.merge(moveType, 1, Integer::sum);
@@ -430,8 +426,7 @@ public class PokeApiApplication {
                         "matchCount", matchCount,
                         "matchPercentage", matchPercentage
                     );
-                } catch(Exception e){
-                logger.error("Error getting move types for pokemon {}: {}", id, String.valueOf(e));
+                } catch(Exception _){
                 }
             return Map.of("success", false);
         }
@@ -461,7 +456,7 @@ public class PokeApiApplication {
         ) {
             Map<String, Object> respMap = new HashMap<>();
 
-            boolean ok = PokeApiDBService.validatePassword(usersRepository, req.usernameoremail(), req.password()); // PASSWORD NEED TO BE HASHED CLIENT SIDE <<< CLIENT SIDE NOT IMPLEMENTED YET
+            boolean ok = PokeApiDBService.validatePassword(usersRepository, req.usernameoremail(), req.password());
 
             if (!ok) {
                 respMap.put("success", false);
@@ -596,8 +591,7 @@ public class PokeApiApplication {
                 try {
                     if(loginCookie.isPresent()) { String value = String.valueOf(loginCookie.get().getValue());
                     return PokeApiDBService.getTeamFromCookie(pokemonsRepository, teamsRepository, cookiesRepository, value); }
-                } catch (Exception e) {
-                    logger.error("Error getting team: {}", String.valueOf(e));
+                } catch (Exception _) {
                 }
             }
             return Map.of("success", false);
