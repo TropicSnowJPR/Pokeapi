@@ -60,3 +60,9 @@ This is a **Java-based web application** that provides an API for interacting wi
 ## 📜 License
 
 This project is licensed under the **MIT License**. See the [LICENSE.md](https://github.com/TropicSnowJPR/Pokeapi/blob/master/LICENSE.md) file for more information.
+
+---
+
+## Extra information
+
+This project is a small project to learn how to use java so it will not be retained!
