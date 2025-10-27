@@ -39,16 +39,16 @@
                             </div>
                             <br>
                             <h3>Team Details</h3>
-                            <div class="inner-content-box" id="team-details">
+                            <div class="inner-content-box" id="team-details-size">
                                 <h4 id="team-size">Team Size:  0 / 6</h4>
                             </div>
-                            <div class="inner-content-box" id="team-details">
+                            <div class="inner-content-box" id="team-details-types">
                                 <h4 id="team-types">Team Types: None</h4>
                             </div>
-                            <div class="inner-content-box" id="team-details">
+                            <div class="inner-content-box" id="team-details-weaknesses">
                                 <h4 id="team-weaknesses">Team Weaknesses: None</h4>
                             </div>
-                            <div class="inner-content-box" id="team-details">
+                            <div class="inner-content-box" id="team-details-stats-average">
                                 <h4 id="team-average-stats">Team Stats Average: None</h4>
                             </div>
                         </div>
@@ -71,7 +71,15 @@
                 <div class="box" id="pokemon-document">
                     <div class="background-box">
                         <div class="content-box" id="pokemon-details">
-                            <h3>Pokémon Details</h3>
+                            <div class="pokemon-details-header">
+                                <h3>Pokémon Details</h3>
+                                <div class="pokemon-details-buttons">
+                                    <button id="copy-pokemon" class="pokemon-button">Copy Pokémon</button>
+                                    <button id="paste-pokemon" class="pokemon-button">Paste Pokémon</button>
+                                    <button id="download-excel" class="pokemon-button">Download Excel</button>
+                                    <button id="download-csv" class="pokemon-button">Download CSV</button>
+                                </div>
+                            </div>
 
                             <div class="inner-content-box" id="pokemon-name">
                                 <h4 id="name-header" th:text="|Name: ${pokemon.name} / ID: ${pokemon.id}|"></h4>
@@ -180,6 +188,7 @@
             </div>
         </main>
 
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <script type="module" src="js/home.js"></script>
     </body>
 </html>

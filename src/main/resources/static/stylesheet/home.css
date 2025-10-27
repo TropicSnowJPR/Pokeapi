@@ -5,6 +5,30 @@
     gap: 0px;
 }
 
+.pokemon-details-buttons {
+    display: flex;
+    min-width: 180px;
+    width: 700px;
+    max-width: 1000px;
+    justify-content: space-evenly;
+}
+
+.pokemon-button {
+    margin-left: 5px;
+}
+
+#search-button, #random-button {
+    height: 40px;
+    width: 40px;
+}
+
+
+#pokemon-name {
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
+}
+
 #menu-document {
     grid-column: span 2 / span 2;
     grid-row: span 4 / span 4;
@@ -122,17 +146,7 @@ a {
     background-color: #b43f3d;
 }
 
-.pokemon-details input[type="button"],
-.pokemon-details button {
-    background-color: #EF5350;
-    color: #f0f8ff;
-    border: none;
-    padding: 12px 8px 12px 8px;
-    border-radius: 12px;
-    cursor: pointer;
-    font: inherit;
-    margin-right: 0px;
-}
+
 
 .document-field {
     margin: 40px;
@@ -147,65 +161,16 @@ a {
     max-width: 200%
 }
 
-.pokemon-team-button {
-    color: #f0f8ff;
-}
+
 
 .team h3, .pokemon-details h3, .search-section h3 {
     margin: 5px;
     text-align: left;
 }
 
-.pokemon-details input[type="text"] {
-    width: auto;
-    padding: 10px;
-    border-radius: 12px;
-    margin-right: 10px;
-    font: inherit;
-}
 
-.search-section input[type="text"] {
-    padding: 10px;
-    border-radius: 12px;
-    border: 1px solid #ccc;
-    margin-right: 10px;
-    font: inherit;
-    background-color: #b43f3d;
-    color: #f0f8ff;
-    min-width: fit-content;
-    box-sizing: border-box;
-    margin-top: 10px;
-}
 
-.search-section input[type="text"]:hover {
-    background-color: #EF5350;
-}
 
-.search-section input[type="button"] {
-    background-color: #EF5350;
-    color: #f0f8ff;
-    border: none;
-    padding: 10px;
-    border-radius: 12px;
-    margin-right: 10px;
-    margin-top: 10px;
-    font: inherit;
-    cursor: pointer;
-}
-
-.search-section input[type="text"]:focus,
-.search-section input[type="button"]:focus,
-.pokemon-details input[type="text"]:focus,
-.pokemon-details input[type="button"]:focus,
-.pokemon-details button:focus {
-    outline: none;
-    border-color: #263238;
-}
-
-.search-section input[type="button"]:hover,
-.pokemon-details button:hover {
-    background-color: #b43f3d;
-}
 
 
 
@@ -234,16 +199,8 @@ a {
 }
 
 
-#pokemon-name, #pokemon-team-button {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
 
-#pokemon-team-button {
-    cursor: pointer;
-    user-select: none;
-}
+
 
 
 td {
@@ -343,26 +300,7 @@ td {
 
 
 
-/* === Buttons === */
-/* default */
-button {
-    background-color: #EF5350;
-    color: #f0f8ff;
-    border: none;
-    padding: 10px;
-    border-radius: 12px;
-    font: inherit;
-    cursor: pointer;
-    height: 38px;        /* same as input */
-    width: 38px;         /* square buttons */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-/* search & random */
-#random-button, #search-button {
-    font-size: 18px;
-}
+
 
 .add-team-button{
     background-color: #EF5350;
@@ -447,6 +385,13 @@ input {
 }
 
 
+.pokemon-details-header {
+    justify-content: space-between;
+    align-items: center;
+    display: flex;
+}
+
+
 .avatar{
     width: 30px;            /* change size */
     aspect-ratio: 1 / 1;     /* keep square container */
@@ -495,6 +440,8 @@ input {
     align-items: center;
     justify-content: space-between;
 }
+
+
 
 .team-member-remove-button {
     background-color: #263238;

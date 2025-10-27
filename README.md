@@ -11,20 +11,6 @@ This is a **Java-based web application** that provides an API for interacting wi
 
 ---
 
-## 📁 Project Structure
-
-| File Name              | Description |
-|-----------------------|-------------|
-| `PokeApiApplication.java` | Main application class with configuration settings and controller logic |
-| `PokeApiService.java`     | Contains methods for fetching Pokémon and move data from the external API |
-| `PokeApiFileService.java` | Handles file upload and storage for user profile pictures |
-| `PokeApiDB.java`          | Contains database operations, including user creation, deletion, login functionality, and cookie management |
-| `ConfigManager.java`      | Manages configuration files using YAML format |
-| `WebConfig.java`          | Configures resource handlers for serving static files |
-| `SecurityConfig.java`     | Configures security settings for the application |
-
----
-
 ## 🔐 Security
 
 - **Password hashing**: Uses **PBKDF2 with a salt** and a **high number of iterations** for security.
@@ -41,7 +27,6 @@ This is a **Java-based web application** that provides an API for interacting wi
 - 🍪 **Cookie-based session management**
 - 📸 **File upload and storage for user profile pictures**
 - 🐉 **Integration with the Pokémon API (pokeapi.co)** for fetching Pokémon and move data
-- 📜 **Configuration management via YAML file**
 
 ---
 
@@ -50,7 +35,6 @@ This is a **Java-based web application** that provides an API for interacting wi
 - **Java 8 or higher**
 - **Spring Boot** for application development
 - **PostgreSQL** for database management
-- **SnakeYAML** for YAML file parsing
 - **HTTP client** for interacting with the Pokémon API
 - **Spring Security** for handling security configurations
 
@@ -63,12 +47,7 @@ This is a **Java-based web application** that provides an API for interacting wi
    git clone https://github.com/TropicSnowJPR/Pokeapi.git
    ```
 
-2. **Configure the `config.yml` file** with your database settings:
-   ```yaml
-   password: dbPassword
-   url: jdbc:postgresql://127.0.0.1:5432/database
-   username: dbUser
-   ```
+2. **Configure the `application.properties` file** 
 
 3. **Set up the PostgreSQL database** and ensure it is running.
 

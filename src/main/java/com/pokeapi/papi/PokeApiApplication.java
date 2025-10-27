@@ -24,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Stream;
@@ -48,11 +50,18 @@ public class PokeApiApplication {
 
     public static void main(String[] args) throws Exception {
 
-        //PokeApiDB.resetAllCookies(); TODO: ENABLE BEFORE DEPLOYMENT
+        String ip;
+
+        try (final DatagramSocket datagramSocket = new DatagramSocket()) {
+            datagramSocket.connect(InetAddress.getByName("8.8.8.8"), 12345);
+            ip = datagramSocket.getLocalAddress().getHostAddress();
+        } catch (Exception e) {
+            ip = "";
+        };
 
         SpringApplication.run(PokeApiApplication.class, args);
 
-        logger.info("POKEAPI STARTED SUCCESSFULLY");
+        logger.info("Started PokeAPI PAPI Application at IP: https://{}:8081", ip);
     }
 
 
@@ -199,7 +208,6 @@ public class PokeApiApplication {
 
                     List<String> TeamTypes = new ArrayList<>();
                     List<String> TeamTypesUnique;
-                    List<String> TeamWeaknesses = new ArrayList<>();
                     Map<String, Integer> TeamTypeCounts = new HashMap<>();
 
                     int TeamSize = 0;
@@ -216,8 +224,7 @@ public class PokeApiApplication {
                         Object typesObj = p.get("types");
                         if (typesObj instanceof List) {
                             for (Object tEntry : (List<?>) typesObj) {
-                                if (!(tEntry instanceof Map)) continue;
-                                Map<?, ?> tmap = (Map<?, ?>) tEntry;
+                                if (!(tEntry instanceof Map<?, ?> tmap)) continue;
                                 Object typeInner = tmap.get("type");
                                 String typeName = null;
                                 if (typeInner instanceof Map) {
@@ -235,8 +242,7 @@ public class PokeApiApplication {
                         Object statsObj = p.get("stats");
                         if (statsObj instanceof List) {
                             for (Object sEntry : (List<?>) statsObj) {
-                                if (!(sEntry instanceof Map)) continue;
-                                Map<?, ?> smap = (Map<?, ?>) sEntry;
+                                if (!(sEntry instanceof Map<?, ?> smap)) continue;
                                 String statName = null;
                                 Object statInner = smap.get("stat");
                                 if (statInner instanceof Map) {
@@ -356,8 +362,7 @@ public class PokeApiApplication {
                 Object typesObj = pmap.get("types");
                         if (typesObj instanceof List) {
                             for (Object tEntry : (List<?>) typesObj) {
-                                if (!(tEntry instanceof Map)) continue;
-                                Map<?, ?> tmap = (Map<?, ?>) tEntry;
+                                if (!(tEntry instanceof Map<?, ?> tmap)) continue;
                                 Object typeInner = tmap.get("type");
                                 String typeName = null;
                                 if (typeInner instanceof Map) {
@@ -380,8 +385,7 @@ public class PokeApiApplication {
                 int matchCount = 0;
 
                 for (Object mEntry : movesList) {
-                    if (!(mEntry instanceof Map)) continue;
-                    Map<?, ?> mmap = (Map<?, ?>) mEntry;
+                    if (!(mEntry instanceof Map<?, ?> mmap)) continue;
                     Object moveInner = mmap.get("move");
                     String moveName = null;
                     if (moveInner instanceof Map) {

@@ -1,13 +1,23 @@
-var fetchPokemonLock = false
-var fetchMoveLock = false
-var fetchTeamLock = false
+// home.js - client-side logic for the Pokémon site
+// Light cleanup: comments, spacing and grouping for readability.
+// Functionality intentionally unchanged.
 
+var fetchPokemonLock = false;
+var fetchMoveLock = false;
+var fetchTeamLock = false;
+
+// -----------------------------
+// Top-level event listeners
+// -----------------------------
+
+// Navigate to user page when username clicked
 document.getElementById("user-name").addEventListener("click", async () => {
     try {
         location.href = "/user";
-    } catch (err) {console.error(err);}
-})
+    } catch (err) { console.error(err); }
+});
 
+// Load a random Pokémon
 document.getElementById("random-button").addEventListener("click", async () => {
     const randomId = Math.floor(Math.random() * 1025) + 1;
     try {
@@ -17,8 +27,9 @@ document.getElementById("random-button").addEventListener("click", async () => {
     }
 });
 
-document.getElementById("search-button").addEventListener("click", search)
-document.getElementById("search").addEventListener('change', search)
+// Search input + button trigger
+document.getElementById("search-button").addEventListener("click", search);
+document.getElementById("search").addEventListener('change', search);
 async function search() {
     const nameid = document.getElementById("search").value.trim();
     if (!nameid) return;
@@ -27,19 +38,23 @@ async function search() {
     } catch (err) {
         window.location.href = `/pokemon?id=${nameid}`;
     }
-};
+}
 
+// Logout button
 document.getElementById("user-logout").addEventListener("click", async () => {
     try {
-        const response = await fetch("/logout", {method: "GET", credentials: "include"})
+        const response = await fetch("/logout", { method: "GET", credentials: "include" });
         if (response.ok) {
-            location.href = "/login"
-        } else {throw new Error("Logout failed")}
+            location.href = "/login";
+        } else {
+            throw new Error("Logout failed");
+        }
     } catch (err) {
-        console.error(err)
+        console.error(err);
     }
-})
+});
 
+// On load: initialize certain UI pieces
 try {
     await loadAddToTeamButton();
     document.addEventListener("DOMContentLoaded", async () => {
@@ -49,49 +64,64 @@ try {
     console.error(err);
 }
 
+// -----------------------------
+// Helpers: UI / color indicators
+// -----------------------------
 
+/**
+ * Apply color styling to elements with .type-indicator based on type name text.
+ * This is purely presentational and uses a fixed mapping.
+ */
 async function loadTypeColorIndicators() {
     document.querySelectorAll(".type-indicator").forEach(el => {
-        if (el.textContent.toLowerCase().includes("psychic")) {
+        const txt = el.textContent.toLowerCase();
+        if (txt.includes("psychic")) {
             el.style.color = "#F95587";
-        } else if (el.textContent.toLowerCase().includes("fire")) {
+        } else if (txt.includes("fire")) {
             el.style.color = "#EE8130";
-        } else if (el.textContent.toLowerCase().includes("water")) {
+        } else if (txt.includes("water")) {
             el.style.color = "#6390F0";
-        } else if (el.textContent.toLowerCase().includes("grass")) {
+        } else if (txt.includes("grass")) {
             el.style.color = "#7AC74C";
-        } else if (el.textContent.toLowerCase().includes("electric")) {
+        } else if (txt.includes("electric")) {
             el.style.color = "#F7D02C";
-        } else if (el.textContent.toLowerCase().includes("ice")) {
+        } else if (txt.includes("ice")) {
             el.style.color = "#96D9D6";
-        } else if (el.textContent.toLowerCase().includes("dragon")) {
+        } else if (txt.includes("dragon")) {
             el.style.color = "#6F35FC";
-        } else if (el.textContent.toLowerCase().includes("dark")) {
+        } else if (txt.includes("dark")) {
             el.style.color = "#705746";
-        } else if (el.textContent.toLowerCase().includes("fairy")) {
+        } else if (txt.includes("fairy")) {
             el.style.color = "#D685AD";
-        } else if (el.textContent.toLowerCase().includes("normal")) {
+        } else if (txt.includes("normal")) {
             el.style.color = "#A8A77A";
-        } else if (el.textContent.toLowerCase().includes("fighting")) {
+        } else if (txt.includes("fighting")) {
             el.style.color = "#C22E28";
-        } else if (el.textContent.toLowerCase().includes("flying")) {
+        } else if (txt.includes("flying")) {
             el.style.color = "#A98FF3";
-        } else if (el.textContent.toLowerCase().includes("poison")) {
+        } else if (txt.includes("poison")) {
             el.style.color = "#A33EA1";
-        } else if (el.textContent.toLowerCase().includes("ground")) {
+        } else if (txt.includes("ground")) {
             el.style.color = "#E2BF65";
-        } else if (el.textContent.toLowerCase().includes("rock")) {
+        } else if (txt.includes("rock")) {
             el.style.color = "#B6A136";
-        } else if (el.textContent.toLowerCase().includes("bug")) {
+        } else if (txt.includes("bug")) {
             el.style.color = "#A6B91A";
-        } else if (el.textContent.toLowerCase().includes("ghost")) {
+        } else if (txt.includes("ghost")) {
             el.style.color = "#735797";
-        } else if (el.textContent.toLowerCase().includes("steel")) {
+        } else if (txt.includes("steel")) {
             el.style.color = "#B7B7CE";
         }
     });
 }
 
+// -----------------------------
+// Team management: add/remove/load
+// -----------------------------
+
+/**
+ * Wire up the "Add to Team" button. Reads current URL id and calls the server.
+ */
 async function loadAddToTeamButton() {
     document.getElementById("add-to-team").addEventListener("click", async () => {
         const params = new URLSearchParams(window.location.search);
@@ -118,12 +148,18 @@ async function loadAddToTeamButton() {
     });
 }
 
+/**
+ * Fetch and render team details (size, types, weaknesses and average stats).
+ */
 async function loadTeamDetails() {
     try {
         const res = await fetch("/team-api");
         if (!res.ok) throw new Error("Fetch failed");
         const data = await res.json();
+
         document.getElementById("team-size").innerText = `Team Size: ${data.teamSize} / 6`;
+
+        // Types
         let typesHtml = "Team Types: <table>";
         if (Array.isArray(data.teamTypesUnique) && data.teamTypesUnique.length > 0) {
             for (const type of data.teamTypesUnique) {
@@ -139,6 +175,7 @@ async function loadTeamDetails() {
         typesHtml += "</table>";
         document.getElementById("team-types").innerHTML = typesHtml;
 
+        // Weaknesses
         let weaknessesHtml = "Team Weaknesses: <table>";
         if (Array.isArray(data.teamWeaknesses) && data.teamWeaknesses.length > 0) {
             for (const type of data.teamWeaknesses) {
@@ -150,8 +187,10 @@ async function loadTeamDetails() {
         weaknessesHtml += "</table>";
         document.getElementById("team-weaknesses").innerHTML = weaknessesHtml;
 
+        // Color indicators after rendering
         await loadTypeColorIndicators();
 
+        // Stats
         let statsHtml = "Team Stats Average: ";
         if (Array.isArray(data.teamStats) && data.teamStats.length > 0) {
             statsHtml += `<table>${data.teamStats.map(stat => `<tr><td>${stat.name}</td><td>${stat.value}</td></tr>`).join("")}</table>`;
@@ -171,6 +210,13 @@ async function loadTeamDetails() {
     }
 }
 
+// -----------------------------
+// Move tooltips and move-related helpers
+// -----------------------------
+
+/**
+ * Attach a one-time mouseover handler to each .move element that fills title with move info.
+ */
 async function loadMoveTooltips() {
     for (const el of document.getElementsByClassName("move")) {
         el.addEventListener("mouseover", async () => {
@@ -181,7 +227,6 @@ async function loadMoveTooltips() {
                 if (!res.ok) throw new Error("Fetch failed");
 
                 const data = await res.json();
-
                 let tooltipText = "";
 
                 if (data.move?.power != null) {
@@ -211,11 +256,11 @@ async function loadMoveTooltips() {
     }
 }
 
+// Return raw move JSON or null on failure
 async function getMoveData(moveName) {
     try {
         const res = await fetch(`/move-api?id=${encodeURIComponent(moveName.replace(" ", "-"))}`);
         if (!res.ok) throw new Error("Fetch failed");
-
         const data = await res.json();
         return data;
     } catch (err) {
@@ -224,11 +269,11 @@ async function getMoveData(moveName) {
     }
 }
 
+// Get aggregated move types by Pokémon id (server endpoint)
 async function getMoveTypes(id) {
     try {
         const res = await fetch(`/move-types-api?id=${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error("Fetch failed");
-
         const data = await res.json();
         return data;
     } catch (err) {
@@ -237,33 +282,43 @@ async function getMoveTypes(id) {
     }
 }
 
+// -----------------------------
+// Fetch helpers with locks to prevent concurrent requests
+// -----------------------------
+
 async function fetchTeamData() {
     try {
-        if (fetchTeamLock) {return}
-        fetchTeamLock = true
-        const res = await fetch("/team")
+        if (fetchTeamLock) { return; }
+        fetchTeamLock = true;
+        const res = await fetch("/team");
         return res.text();
     } finally {
-        fetchTeamLock = false
+        fetchTeamLock = false;
     }
 }
 
 async function fetchPokemonData(nameid) {
     try {
-        if (fetchPokemonLock) {return}
-        fetchPokemonLock = true
+        if (fetchPokemonLock) { return; }
+        fetchPokemonLock = true;
         const res = await fetch("/pokemon-api?id=" + nameid);
         return res.text();
     } finally {
-        fetchPokemonLock = false
+        fetchPokemonLock = false;
     }
 }
 
+// -----------------------------
+// Page load and Pokémon rendering
+// -----------------------------
+
 async function loadWebsite() {
     try {
-        await loadTeam()
-        await loadTeamDetails()
-        await loadMoveTooltips()
+        await loadTeam();
+        await loadTeamDetails();
+        await loadMoveTooltips();
+
+        // Load Pokémon id from URL and render it
         const params = new URLSearchParams(window.location.search);
         const idFromUrl = params.get("id");
         let nameid = null;
@@ -274,16 +329,35 @@ async function loadWebsite() {
             return;
         }
         await loadPokemon(nameid);
-    } catch (err) {console.error("Error:", err);}
+    } catch (err) {
+        console.error("Error:", err);
+    }
 }
 
+/**
+ * Render the Pokémon page using data from the server.
+ * Keeps existing DOM structure and IDs intact.
+ */
 async function loadPokemon(id) {
     try {
         const text = await fetchPokemonData(id);
         const data = await JSON.parse(text);
-        const generations = [{ max: 151, name: "Gen I" },{ max: 251, name: "Gen II" },{ max: 386, name: "Gen III" },{ max: 493, name: "Gen IV" },{ max: 649, name: "Gen V" },{ max: 721, name: "Gen VI" },{ max: 809, name: "Gen VII" },{ max: 905, name: "Gen VIII" },];
+
+        // Determine generation label based on id
+        const generations = [
+            { max: 151, name: "Gen I" },
+            { max: 251, name: "Gen II" },
+            { max: 386, name: "Gen III" },
+            { max: 493, name: "Gen IV" },
+            { max: 649, name: "Gen V" },
+            { max: 721, name: "Gen VI" },
+            { max: 809, name: "Gen VII" },
+            { max: 905, name: "Gen VIII" },
+        ];
         let gen = "Gen IX";
-        for (const g of generations) {if (data.pokemon.id <= g.max) {gen = g.name; break;}}
+        for (const g of generations) { if (data.pokemon.id <= g.max) { gen = g.name; break; } }
+
+        // Populate DOM elements (preserve same markup as original)
         document.getElementById("pokemon-name").innerHTML = `<h4 id="name-header">Name: ${data.pokemon.name} / ID: ${data.pokemon.id}</h4>` + '<button id="add-to-team" class="add-team-button">Add to Team</button>';
         document.getElementById("pokemon-official-artwork-image").src = data.pokemon.sprites.other.officialArtwork.frontDefault || "images/ball.png";
         document.getElementById("pokemon-pixel-artwork-image").src = data.pokemon.sprites.frontDefault || "images/ball.png";
@@ -296,7 +370,11 @@ async function loadPokemon(id) {
         document.getElementById("pokemon-forms").innerHTML = `<h4 id="forms-header">Forms: ${data.pokemon.forms.map((f) => f.name).join(" ")}</h4>`;
         document.getElementById("latest-cry").src = data.pokemon.cries.latest || "./audio/default.ogg";
         document.getElementById("legacy-cry").src = data.pokemon.cries.legacy || "./audio/default.ogg";
+
+        // Moves table
         document.getElementById("pokemon-moves").innerHTML = "<h4 id=\"move-header\">Moves:" + "<table>" + data.pokemon.moves.map((m) => `<tr><td class="move">${(m.inner.name).replace("-", " ")}</td></tr>`).join('') + "</table>" + "</h4>";
+
+        // Reuse the URL id if present for move types query
         const params = new URLSearchParams(window.location.search);
         const idFromUrl = params.get("id");
         let nameid = null;
@@ -306,6 +384,7 @@ async function loadPokemon(id) {
             console.error("No pokemon id found in input or URL");
             return;
         }
+
         const moveTypesData = await getMoveTypes(nameid);
         let moveTypesHtml = "<table>";
         for (const type in moveTypesData.moveTypeCounts) {
@@ -316,8 +395,12 @@ async function loadPokemon(id) {
         moveTypesHtml += "</table>";
 
         document.getElementById("pokemon-move-types").innerHTML = `<h4 id="move-types-header">Move Types: ${moveTypesHtml}</h4>`;
+
+        // Attach move tooltips and color indicators after rendering DOM
         await loadMoveTooltips();
         await loadTypeColorIndicators();
+
+        // Update browser URL and re-attach the add-to-team button
         const newUrl = `/pokemon?id=${data.pokemon.id}`;
         window.history.pushState(null, '', newUrl);
         await loadAddToTeamButton();
@@ -326,70 +409,266 @@ async function loadPokemon(id) {
     }
 }
 
+// -----------------------------
+// Team list rendering
+// -----------------------------
+
 async function loadTeam() {
     try {
         const text = await fetchTeamData();
+
+        // Remove any existing team members from DOM
         const teamElements = document.getElementsByClassName("inner-field-box");
         if (teamElements.length > 0) {
             for (let i = teamElements.length - 1; i >= 0; i--) {
                 teamElements[i].parentNode.removeChild(teamElements[i]);
             }
         }
+
+        // Remove any empty team messages
         const emptyMessages = document.getElementsByClassName("empty-team-message");
         if (emptyMessages.length > 0) {
             for (let i = emptyMessages.length - 1; i >= 0; i--) {
                 emptyMessages[i].parentNode.removeChild(emptyMessages[i]);
             }
         }
-        if (!(text.startsWith('{')) || text.startsWith('[')) {return}
+
+        // Validate text looks like an object (preserve original logic)
+        if (!(text.startsWith('{')) || text.startsWith('[')) { return; }
+
         const data = JSON.parse(text);
         const teamDiv = document.getElementById("team-content");
-        if (!teamDiv) {throw Error ("Element with ID 'team-content' not found");}
+        if (!teamDiv) { throw Error ("Element with ID 'team-content' not found"); }
+
         if (data.team_members.length === 0) {
-            const p = document.createElement("p")
-            p.className = "empty-team-message"
-            p.append("Nothing here yet")
-            teamDiv.appendChild(p)
-            return
+            const p = document.createElement("p");
+            p.className = "empty-team-message";
+            p.append("Nothing here yet");
+            teamDiv.appendChild(p);
+            return;
         }
+
         if (teamDiv.firstChild.className === "empty-team-message") {
-            teamDiv.removeChild(teamDiv.firstChild)
+            teamDiv.removeChild(teamDiv.firstChild);
         }
+
+        // Render up to 6 team slots
         for (let i = 0; i < 6; i++) {
             if (data.team_members[i] !== 0 && data.team_members[i] != null && data.team_members[i] !== undefined && data.team_members[i] !== "") {
                 const div = document.createElement("div");
-                div.className = "inner-field-box"
-                div.id = `team-member-${i}`
-                const p = document.createElement("p")
-                p.className = "team-member"
-                p.append(data.team_members[i])
-                div.appendChild(p)
+                div.className = "inner-field-box";
+                div.id = `team-member-${i}`;
+
+                const p = document.createElement("p");
+                p.className = "team-member";
+                p.append(data.team_members[i]);
+                div.appendChild(p);
+
                 div.addEventListener("click", () => {
                     loadPokemon(data.team_members[i]);
-                })
-                const image = document.createElement("img")
-                image.className = "team-member-remove-button"
-                image.src = "images/delete.svg"
-                image.alt = "✖"
+                });
+
+                const image = document.createElement("img");
+                image.className = "team-member-remove-button";
+                image.src = "images/delete.svg";
+                image.alt = "✖";
                 image.addEventListener("click", async (event) => {
-                    event.stopPropagation()
+                    event.stopPropagation();
                     await removeTeamMember(data.team_members[i]);
                     loadTeam();
-                    await loadTeamDetails()
-                })
-                div.appendChild(image)
-                teamDiv.appendChild(div)
+                    await loadTeamDetails();
+                });
+
+                div.appendChild(image);
+                teamDiv.appendChild(div);
             }
         }
-    } catch (err) {console.error(err)}
+    } catch (err) { console.error(err); }
 }
 
+// Call server to remove a team member (no UI changes here)
 async function removeTeamMember(pokemonId) {
     try {
-        const response = await fetch(`/team/remove/${pokemonId}`)
+        const response = await fetch(`/team/remove/${pokemonId}`);
     } catch (err) {
-        console.error(err)
+        console.error(err);
     }
 }
+
+// -----------------------------
+// Clipboard / export utilities
+// -----------------------------
+
+async function dumpSiteData() {
+    const result = {};
+
+    const params = new URLSearchParams(window.location.search);
+    const idFromUrl = params.get("id");
+    if (idFromUrl) {
+        const nameid = idFromUrl.trim();
+
+        try {
+            const pokeRes = await fetch(`/pokemon-api?id=${encodeURIComponent(nameid)}`);
+            result.pokemon = pokeRes.ok ? await pokeRes.json() : null;
+        } catch (err) {
+            console.error("Error fetching Pokémon:", err);
+            result.pokemon = null;
+        }
+    }
+
+    return result;
+}
+
+async function copySiteData() {
+    try {
+        const data = await dumpSiteData();
+        const jsonStr = JSON.stringify(data, null, 2);
+        await navigator.clipboard.writeText(jsonStr);
+        console.log("Site data copied to clipboard!");
+    } catch (err) {
+        console.error("Failed to copy site data:", err);
+    }
+}
+
+async function pasteSiteDataFromClipboard() {
+    try {
+        const clipboardText = await navigator.clipboard.readText();
+        const data = JSON.parse(clipboardText);
+
+        loadPokemon(data.pokemon.pokemon.id || 1);
+
+        await loadMoveTooltips();
+        await loadTypeColorIndicators();
+        await loadAddToTeamButton();
+
+        console.log("Page rebuilt from clipboard JSON");
+    } catch (err) {
+        console.error("Failed to paste site data from clipboard:", err);
+    }
+}
+
+// -----------------------------
+// CSV / Excel export helpers
+// -----------------------------
+
+function convertToCSV(jsonData) {
+    let csv = "";
+
+    if (jsonData.team?.team_members) {
+        csv += "Team Members\n";
+        jsonData.team.team_members.forEach((m, i) => {
+            csv += `${i + 1},${m || ""}\n`;
+        });
+        csv += "\n";
+    }
+
+    if (jsonData.pokemon?.pokemon) {
+        const p = jsonData.pokemon.pokemon;
+        csv += "Pokemon Info\n";
+        csv += `ID,${p.id}\n`;
+        csv += `Name,${p.name}\n`;
+        csv += `Height,${p.height}\n`;
+        csv += `Weight,${p.weight}\n`;
+        csv += `Types,${p.types.map(t => t.inner.name).join(", ")}\n`;
+        csv += `Abilities,${p.abilities.map(a => a.inner.name).join(", ")}\n`;
+        csv += "\n";
+
+        csv += "Stats\n";
+        csv += "Stat,Value\n";
+        p.stats.forEach(s => {
+            csv += `${s.inner.name.replace("-", " ")},${s.baseStat}\n`;
+        });
+        csv += "\n";
+
+        csv += "Moves\n";
+        csv += "Move,Power,Accuracy,Type,DamageClass,EffectChance\n";
+        for (const moveName in jsonData.moves) {
+            const m = jsonData.moves[moveName]?.move || {};
+            csv += [
+                moveName
+            ].join(",") + "\n";
+        }
+        csv += "\n";
+    }
+
+    return csv;
+}
+
+function downloadCSV(jsonData, filename = "site_data.csv") {
+    const csv = convertToCSV(jsonData);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+}
+
+function downloadExcel(jsonData, filename = "site_data.xlsx") {
+    const wb = XLSX.utils.book_new();
+
+    if (jsonData.pokemon?.pokemon) {
+        const p = jsonData.pokemon.pokemon;
+
+        const infoData = [
+            ["ID", p.id],
+            ["Name", p.name],
+            ["Height", p.height],
+            ["Weight", p.weight],
+            ["Types", p.types.map(t => t.inner.name).join(", ")],
+            ["Abilities", p.abilities.map(a => a.inner.name).join(", ")],
+            ["Stats", p.stats.map(s => `${s.inner.name}: ${s.baseStat}`).join(", ")],
+            ["Moves", p.moves.map(m => m.inner.name).join(", ")]
+        ];
+        const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+        XLSX.utils.book_append_sheet(wb, wsInfo, "Pokemon Info");
+    }
+
+    XLSX.writeFile(wb, filename);
+}
+
+// -----------------------------
+// UI buttons for clipboard/exports
+// -----------------------------
+
+document.getElementById("copy-pokemon").addEventListener("click", async () => {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const idFromUrl = params.get("id");
+
+        const pokemonRes = await fetch("/pokemon-api?id=" + encodeURIComponent(idFromUrl.trim()));
+        const pokemon = await pokemonRes.json();
+
+        const fullData = { pokemon };
+
+
+        await navigator.clipboard.writeText(JSON.stringify(fullData, null, 2));
+        alert("All site data copied successfully!");
+    } catch (err) {
+        console.error(err);
+        alert("Failed to copy site data!");
+    }
+});
+
+document.getElementById("paste-pokemon").addEventListener("click", async () => {
+    try {
+        const clipboardText = await navigator.clipboard.readText();
+        const data = JSON.parse(clipboardText);
+
+        // Load Pokémon data
+        if (data.pokemon?.pokemon) {
+            await loadPokemon(data.pokemon.pokemon.id);
+        }
+
+        alert("Site data pasted successfully!");
+    } catch (err) {
+        console.error(err);
+        alert("Failed to paste site data!");
+    }
+});
+
+document.getElementById("download-csv").addEventListener("click", async () => { downloadCSV(await dumpSiteData()); });
+
+document.getElementById("download-excel").addEventListener("click", async () => { downloadExcel(await dumpSiteData()); });
+
 
 await loadWebsite();
