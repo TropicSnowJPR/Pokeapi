@@ -65,4 +65,4 @@ This project is licensed under the **MIT License**. See the [LICENSE.md](https:/
 
 ## Extra information
 
-This project is a small project to learn how to use java so it will not be retained!
+This project is a small project for me to learn how to use java so it will not be retained!
