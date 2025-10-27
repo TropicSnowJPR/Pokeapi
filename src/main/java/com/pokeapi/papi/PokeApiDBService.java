@@ -221,6 +221,57 @@ public class PokeApiDBService {
 
 
     // ===================================================== //
+    // * Extra Service                                       //
+    // ===================================================== //
+
+    public static void setTera(ExtrasRepository extrasRepository, UsersRepository usersRepository, Long uid, String teraType, String teraPokemon) {
+        if(usersRepository.findById(uid).isEmpty()) {throw new RuntimeException("User with the provided ID does not exist!");}
+        if(extrasRepository.findByUid(uid).isEmpty()) {
+            Extras extra = new Extras();
+            extra.setUid(uid);
+            extra.setTeraType(teraType);
+            extra.setTeraPokemon(teraPokemon);
+            extrasRepository.save(extra);
+        } else {
+            Extras extra = extrasRepository.findByUid(uid).getFirst();
+            extra.setTeraType(teraType);
+            extrasRepository.save(extra);
+        }
+    }
+
+    public static void addExtra(ExtrasRepository extrasRepository, UsersRepository usersRepository, Long uid, String teraPokemon, String teraType) {
+        if(usersRepository.findById(uid).isEmpty()) {throw new RuntimeException("User with the provided ID does not exist!");}
+        Extras extra = new Extras();
+        extra.setUid(uid);
+        extra.setTeraType(teraType);
+        extra.setTeraPokemon(teraPokemon);
+        extrasRepository.save(extra);
+    }
+
+    public static void addExtraFromCookie(ExtrasRepository extrasRepository, CookiesRepository cookiesRepository, UsersRepository usersRepository, String cookieValue, String teraPokemon, String teraType) {
+        if(usersRepository.findById(PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue))).isEmpty()) {
+            throw new RuntimeException("User with the provided ID does not exist!");
+        }
+        Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue));
+        Extras extra = new Extras();
+        extra.setUid(uid);
+        extra.setTeraType(teraType);
+        extra.setTeraPokemon(teraPokemon);
+        extrasRepository.save(extra);
+    }
+
+    public static void removeExtraFromCookie(ExtrasRepository extrasRepository, CookiesRepository cookiesRepository, UsersRepository usersRepository, String cookieValue) {
+        if(usersRepository.findById(PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue))).isEmpty()) {
+            throw new RuntimeException("User with the provided ID does not exist!");
+        }
+        Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, cookieValue));
+        if(extrasRepository.findByUid(uid).isEmpty()) {throw new RuntimeException("No extra found for the provided user ID!");}
+        extrasRepository.deleteByUid(uid);
+    }
+
+
+
+    // ===================================================== //
     // * Cookie Service                                      //
     // ===================================================== //
 
@@ -294,5 +345,14 @@ public class PokeApiDBService {
         }
         return Map.of("team_members", teamMembers);
     }
+
+    public static Map<String, Object> getExtraFromCookie(ExtrasRepository extrasRepository, CookiesRepository cookiesRepository, String cookieValue) {
+        if(cookiesRepository.findByValue(cookieValue).isEmpty()) { throw new RuntimeException("Cookie does not exist in db!"); }
+        List<Cookies> cookies = cookiesRepository.findByValue(cookieValue);
+        Long id = cookies.getFirst().getUid();
+        if(extrasRepository.findByUid(id).isEmpty()) { throw new RuntimeException("No Tera Type set for this user!"); }
+        return Map.of("extra",extrasRepository.findByUid(id).getFirst());
+    }
+
 
 }

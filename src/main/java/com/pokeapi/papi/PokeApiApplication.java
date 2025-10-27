@@ -2,10 +2,7 @@ package com.pokeapi.papi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.pokeapi.papi.db.CookiesRepository;
-import com.pokeapi.papi.db.PokemonsRepository;
-import com.pokeapi.papi.db.TeamsRepository;
-import com.pokeapi.papi.db.UsersRepository;
+import com.pokeapi.papi.db.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -44,6 +41,9 @@ public class PokeApiApplication {
 
     @Autowired
     private PokemonsRepository pokemonsRepository;
+
+    @Autowired
+    private ExtrasRepository extrasRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(PokeApiApplication.class);
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -166,6 +166,31 @@ public class PokeApiApplication {
                     "success", true,
                     "pokemon", gson.fromJson(string, Pokemon.class)
             )).orElseGet(() -> Map.of("success", false));
+        }
+
+        @GetMapping("/extra-api")
+        @ResponseBody
+        public Map<String, Object> getExtraApi(@RequestParam("id") String id, HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return Map.of("success", false);
+            }
+            Optional<Cookie> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .findAny();
+            if (loginCookie.isEmpty()) {
+                return Map.of("success", false);
+            }
+
+            try {
+                Map<String, Object> extra = PokeApiDBService.getExtraFromCookie(extrasRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()));
+                return Map.of(
+                        "success", true,
+                        "extra", extra
+                );
+            } catch (Exception e) {
+            }
+            return Map.of("success", false);
         }
 
         @GetMapping("/team-api")
@@ -643,6 +668,83 @@ public class PokeApiApplication {
                 return Map.of("success", true);
             }
             return Map.of("success", false);
+        }
+
+
+
+        // -------- EXTRA API PAGES --------
+        @PostMapping("/extra/add")
+        @ResponseBody
+        public Map<String, Object> addExtra(@RequestParam Map<String, String> allParams, HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) { return Map.of("success", false); }
+            Optional<String> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findAny();
+            if (loginCookie.isEmpty()) { return Map.of("success", false); }
+            if (allParams.isEmpty()) { return Map.of("success", false); }
+            if (allParams.size() > 4) { return Map.of("success", false); }
+
+            try {
+                PokeApiDBService.addExtraFromCookie(extrasRepository, cookiesRepository, usersRepository, loginCookie.get(), allParams.get("pokemon"), allParams.get("type"));
+                return Map.of("success", true);
+            } catch (Exception e) {
+                return Map.of("success", false);
+            }
+        }
+
+        @PostMapping("/extra/set")
+        @ResponseBody
+        public Map<String, Object> removeExtra(@RequestParam Map<String, String> allParams, HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return Map.of("success", false);
+            }
+            Optional<String> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findAny();
+            Long id = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, PokeApiDBService.getUsernameByCookie(usersRepository, cookiesRepository, loginCookie.get()));
+            if (loginCookie.isEmpty()) {
+                return Map.of("success", false);
+            }
+            if (allParams.isEmpty()) {
+                return Map.of("success", false);
+            }
+            if (allParams.size() > 4) {
+                return Map.of("success", false);
+            }
+            PokeApiDBService.setTera(extrasRepository, usersRepository, id, allParams.get("type"), allParams.get("pokemon"));
+            return Map.of("success", true);
+        }
+
+        @PostMapping("/extra/remove")
+        @ResponseBody
+        public Map<String, Object> setExtra(@RequestParam Map<String, String> allParams, HttpServletRequest request) {
+            Cookie[] cookies = request.getCookies();
+            if (cookies == null) {
+                return Map.of("success", false);
+            }
+            Optional<String> loginCookie = Arrays.stream(cookies)
+                    .filter(cookie -> "loginCookie".equals(cookie.getName()))
+                    .map(Cookie::getValue)
+                    .findAny();
+            if (loginCookie.isEmpty()) {
+                return Map.of("success", false);
+            }
+            if (allParams.isEmpty()) {
+                return Map.of("success", false);
+            }
+            if (allParams.size() > 4) {
+                return Map.of("success", false);
+            }
+            try {
+                PokeApiDBService.removeExtraFromCookie(extrasRepository, cookiesRepository, usersRepository, loginCookie.get());
+                return Map.of("success", true);
+            } catch (Exception e) {
+                return Map.of("success", false);
+            }
         }
 
 
