@@ -198,17 +198,6 @@ a {
     display: block;
 }
 
-
-
-
-
-
-td {
-    cursor: pointer;
-}
-
-
-
 .move-tooltip { 
     position: relative; 
     display: inline-block; 
@@ -418,7 +407,6 @@ input {
     margin-top: 0px;
     font-size: 14px;
     width: 100%;
-    cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -451,5 +439,11 @@ input {
     border-radius: 6px;
     cursor: pointer;
     width: 18px;
-    height: 18px;
+    height: 24px;
+    margin-bottom: -13px;
+    margin-left: 10px;
 }
+
+.move {
+}
+

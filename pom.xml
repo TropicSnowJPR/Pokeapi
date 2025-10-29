@@ -97,6 +97,11 @@
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>7.11.1</version>
+        </dependency>
     </dependencies>
 
 	<build>
@@ -116,6 +121,9 @@
                             <version>1.18.40</version>
                         </path>
                     </annotationProcessorPaths>
+                    <source>24</source>
+                    <target>24</target>
+                    <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
 		</plugins>

@@ -7,3 +7,9 @@ h2 {
 #submit-button {
     margin-left: 10px
 }
+
+#singupError {
+    color: #FFCDD2;
+    margin-top: 10px;
+    text-align: center;
+}

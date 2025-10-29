@@ -46,10 +46,25 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
     e.preventDefault();
     const usernameoremail = document.getElementById('usernameoremail').value;
     const password = document.getElementById('password').value;
+    if (!usernameoremail || !password) {
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = "⚠️ All fields are required.";
+        errEl.hidden = false;
+        setTimeout(() => {
+            errEl.hidden = true;
+            errEl.textContent = "";
+        }, 5000);
+    }
     const salt = await fetchSalt(usernameoremail);
     const data = JSON.parse(salt);
     if(!data.success) {
-        alert("❌ Login failed: Invalid username/email or password");
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = "⚠️ " + (data.error || "Login failed, please try again.");
+        errEl.hidden = false;
+        setTimeout(() => {
+            errEl.hidden = true;
+            errEl.textContent = "";
+        }, 5000);
         return;
     }
     const hashedPassword = await hashPassword(password, data.salt);
@@ -76,11 +91,23 @@ document.getElementById('loginForm').addEventListener('submit', async e => {
         if (data.success) {
             location.href='/'
         } else {
-            alert("❌ Login failed: " + (data.error || "Unknown error")); // MAke a betta error system
+            const errEl = document.getElementById('loginError');
+            errEl.textContent = "⚠️ " + (data.error || "Login failed, please try again.");
+            errEl.hidden = false;
+            setTimeout(() => {
+                errEl.hidden = true;
+                errEl.textContent = "";
+            }, 5000);
         }
     })
     .catch(err => {
         console.error(err);
-        alert("⚠️ Server error, please try again later."); //here to catch all errors
+        const errEl = document.getElementById('loginError');
+        errEl.textContent = "❌ Login failed due to a network error.";
+        errEl.hidden = false;
+        setTimeout(() => {
+            errEl.hidden = true;
+            errEl.textContent = "";
+        }, 5000);
     });
 });

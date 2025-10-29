@@ -28,12 +28,14 @@
                 <div class="standalone-background-box">
                     <div class="standalone-content-box">
                         <h2>Sign up</h2>
-                        <!-- Replaced JSF inputText/inputSecret with normal HTML inputs -->
                         <form id="signupForm">
                             <input type="text" id="username" class="input" placeholder="Username">
                             <input type="email" id="email" class="input" placeholder="Email">
                             <input type="password" id="password" class="input" placeholder="Password">
                             <input type="submit" class="button" value="Sign up">
+                            <div id="signupError" class="errormessage" role="alert" aria-live="assertive" hidden>
+                                <!-- Error text will be inserted here by js/signup.js -->
+                            </div>
                         </form>
                     </div>
                 </div>

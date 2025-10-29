@@ -59,7 +59,7 @@ public class PokeApiApplication {
         try (final DatagramSocket datagramSocket = new DatagramSocket()) {
             datagramSocket.connect(InetAddress.getByName("8.8.8.8"), 12345);
             ip = datagramSocket.getLocalAddress().getHostAddress();
-        } catch (Exception e) {
+        } catch (Exception err) {
             ip = "";
         };
 
@@ -93,7 +93,8 @@ public class PokeApiApplication {
         @GetMapping("/")
         public Object getHomePage() {
             SecureRandom sr = new SecureRandom();
-            return "redirect:/pokemon?id=" + sr.nextInt(1025) + 1;
+            int seed = sr.nextInt(1025) + 1;
+            return "redirect:/pokemon?id=" + seed;
         }
 
         @GetMapping("/pokemon")
@@ -188,7 +189,7 @@ public class PokeApiApplication {
                         "success", true,
                         "extra", extra
                 );
-            } catch (Exception e) {
+            } catch (Exception err) {
             }
             return Map.of("success", false);
         }
@@ -216,7 +217,7 @@ public class PokeApiApplication {
                         memArr = gson.fromJson(gson.toJson(memObj), String[].class);
                         if (memArr == null) memArr = new String[0];
                         memArr = Arrays.stream(memArr).map(String::trim).toArray(String[]::new);
-                    } catch (Exception e) {
+                    } catch (Exception err) {
                         memArr = new String[0];
                     }
 
@@ -295,6 +296,16 @@ public class PokeApiApplication {
 
                         TeamSize++;
                     }
+
+                    try {
+                        Map<String, Object> extra = PokeApiDBService.getExtraFromCookie(extrasRepository, cookiesRepository, String.valueOf(loginCookie.get().getValue()));
+                        Extras extraValue = gson.fromJson(gson.toJson(extra.get("extra")), Extras.class);
+                        String teraType = extraValue.getTeraType();
+                        if (teraType != null && !teraType.equalsIgnoreCase("none") && !teraType.isBlank()) {
+                            TeamTypes.add(teraType);
+                            TeamTypeCounts.merge(teraType, 1, Integer::sum);
+                        }
+                    } catch (Exception _) {}
 
                     TeamTypesUnique = new ArrayList<>(new LinkedHashSet<>(TeamTypes));
 
@@ -475,10 +486,8 @@ public class PokeApiApplication {
 
         @PostMapping("/login/submit")
         @ResponseBody
-        public Map<String, Object> postLoginPage(
-                @RequestBody LoginRequest req,
-                HttpServletResponse response
-        ) {
+        public Map<String, Object> postLoginPage(@RequestBody LoginRequest req, HttpServletResponse response) {
+
             Map<String, Object> respMap = new HashMap<>();
 
             boolean ok = PokeApiDBService.validatePassword(usersRepository, req.usernameoremail(), req.password());
@@ -496,9 +505,9 @@ public class PokeApiApplication {
                         respMap.put("error", "Could not create login cookie");
                         return respMap;
                     }
-                } catch (Exception e) {
+                } catch (Exception err) {
                     respMap.put("success", false);
-                    respMap.put("error", e.getMessage());
+                    respMap.put("error", "Could not create login cookie for user");
                     return respMap;
                 }
 
@@ -525,9 +534,9 @@ public class PokeApiApplication {
                 respMap.put("success", true);
                 respMap.put("salt", salt);
                 return respMap;
-            } catch (Exception e) {
+            } catch (Exception err) {
                 respMap.put("success", false);
-                respMap.put("error", e.getMessage());
+                respMap.put("error", "Invalid Usernamer/Email or Password");
                 return respMap;
             }
         }
@@ -551,19 +560,57 @@ public class PokeApiApplication {
 
         @PostMapping("/signup/submit")
         @ResponseBody
-        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req) {
-            Map<String, Object> response = new HashMap<>();
+        public Map<String, Object> postSignupPage(@RequestBody SignupRequest req, HttpServletResponse response) {
+            Map<String, Object> respMap = new HashMap<>();
+            if (req.username() == null || req.username().isBlank() ||
+                req.email() == null || req.email().isBlank() ||
+                req.password() == null || req.password().isBlank() ||
+                req.salt() == null || req.salt().isBlank()) {
+                respMap.put("success", false);
+                respMap.put("error", "All fields are required");
+                return respMap;
+            }
+            List<Users> existingUsers = usersRepository.findByName(req.username());
+            if (!existingUsers.isEmpty()) {
+                respMap.put("success", false);
+                respMap.put("error", "Username already in use");
+                return respMap;
+            }
+            existingUsers = usersRepository.findByEmail(req.email());
+            if (!existingUsers.isEmpty()) {
+                respMap.put("success", false);
+                respMap.put("error", "Email already in use");
+                return respMap;
+            }
             try {
                 PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
-                Long id = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.username());
-                PokeApiDBService.createTeam(teamsRepository, usersRepository, id);
-                response.put("success", true);
+            } catch (Exception _) {}
+            String cookieValue;
+            try {
+                Long uid = PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.username());
+                cookieValue = PokeApiDBService.createCookie(usersRepository, cookiesRepository, uid);
+                if (cookieValue == null || cookieValue.isEmpty()) {
+                    respMap.put("success", false);
+                    respMap.put("error", "Could not create login cookie");
+                    return respMap;
+                }
             } catch (Exception err) {
-                response.put("success", false);
-                response.put("error", err.getMessage());
-                return response;
+                respMap.put("success", false);
+                respMap.put("error", err.getMessage());
+                return respMap;
             }
-            return response;
+
+            Cookie cookie = new Cookie("loginCookie", cookieValue);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(true);
+            cookie.setPath("/");
+            cookie.setMaxAge(60 * 60 * 24 * 7);
+
+            response.addCookie(cookie);
+
+            respMap.put("loginCookie", cookieValue);
+            respMap.put("success", true);
+            return respMap;
         }
 
 
@@ -632,7 +679,7 @@ public class PokeApiApplication {
                     .map(Cookie::getValue)
                     .findAny();
             if (loginCookie.isEmpty()) { return Map.of("success", false); }
-            if (nameid.matches(".*[a-zA-Z].*")) {
+            if (nameid.matches(".*[a-zA-Z].*") || nameid.matches(".*[1-9].*")) {
                 Optional<String> s = PokeApiService.getPokemon(nameid);
                 if (s.isEmpty()) { return Map.of("success", false); }
                 Pokemon pokemon = gson.fromJson(s.get(), Pokemon.class);
@@ -640,7 +687,7 @@ public class PokeApiApplication {
             }
             try {
                 PokeApiDBService.addPokemonToTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), nameid);
-            } catch (Exception e) {
+            } catch (Exception err) {
                 return Map.of("success", true);
             }
             return Map.of("success", false);
@@ -664,7 +711,7 @@ public class PokeApiApplication {
             }
             try {
                 PokeApiDBService.removePokemonFromTeam(cookiesRepository, teamsRepository, usersRepository, loginCookie.get(), nameid);
-            } catch (Exception e) {
+            } catch (Exception err) {
                 return Map.of("success", true);
             }
             return Map.of("success", false);
@@ -687,9 +734,9 @@ public class PokeApiApplication {
             if (allParams.size() > 4) { return Map.of("success", false); }
 
             try {
-                PokeApiDBService.addExtraFromCookie(extrasRepository, cookiesRepository, usersRepository, loginCookie.get(), allParams.get("pokemon"), allParams.get("type"));
+                PokeApiDBService.addExtraFromCookie(extrasRepository, cookiesRepository, usersRepository, loginCookie.get(), allParams.get("id"), allParams.get("type"));
                 return Map.of("success", true);
-            } catch (Exception e) {
+            } catch (Exception err) {
                 return Map.of("success", false);
             }
         }
@@ -715,7 +762,7 @@ public class PokeApiApplication {
             if (allParams.size() > 4) {
                 return Map.of("success", false);
             }
-            PokeApiDBService.setTera(extrasRepository, usersRepository, id, allParams.get("type"), allParams.get("pokemon"));
+            PokeApiDBService.setTera(extrasRepository, usersRepository, id, allParams.get("id"), allParams.get("type") );
             return Map.of("success", true);
         }
 
@@ -742,7 +789,7 @@ public class PokeApiApplication {
             try {
                 PokeApiDBService.removeExtraFromCookie(extrasRepository, cookiesRepository, usersRepository, loginCookie.get());
                 return Map.of("success", true);
-            } catch (Exception e) {
+            } catch (Exception err) {
                 return Map.of("success", false);
             }
         }

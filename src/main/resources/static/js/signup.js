@@ -75,6 +75,16 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
 
+    if (!username || !email || !password) {
+        const errEl = document.getElementById('signupError');
+        errEl.textContent = "⚠️ All fields are required.";
+        errEl.hidden = false;
+        setTimeout(() => {
+            errEl.hidden = true;
+            errEl.textContent = "";
+        }, 5000);
+        return;
+    };
     const errorMsg = validatePassword(password);
     if (errorMsg) {
         alert(errorMsg);
@@ -104,14 +114,25 @@ document.getElementById('signupForm').addEventListener('submit', async e => {
 
         console.log(data);
         if (data.success) {
-            alert("✅ Signup successful!");
             location.href='/login'
         } else {
-            alert("❌ Signup failed: " + (data.error || "Unknown error"));
+            const errEl = document.getElementById('signupError');
+            errEl.textContent = "⚠️ " + (data.error || "Signup failed, please try again.");
+            errEl.hidden = false;
+            setTimeout(() => {
+                errEl.hidden = true;
+                errEl.textContent = "";
+            }, 5000);
         }
     })
     .catch(err => {
         console.error(err);
-        alert("⚠️ Server error, please try again later.");
+        const errEl = document.getElementById('signupError');
+        errEl.textContent = "❌ Signup failed due to a network error.";
+        errEl.hidden = false;
+        setTimeout(() => {
+            errEl.hidden = true;
+            errEl.textContent = "";
+        }, 5000);
     });
 });

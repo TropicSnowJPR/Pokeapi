@@ -191,10 +191,6 @@ public class PokeApiDBService {
             id = users.getFirst().getId();
         } catch(Exception _) {}
 
-        if(id == null) {
-            throw new RuntimeException("No user found for the provided username or email!");
-        }
-
         return id;
     }
 
@@ -224,7 +220,7 @@ public class PokeApiDBService {
     // * Extra Service                                       //
     // ===================================================== //
 
-    public static void setTera(ExtrasRepository extrasRepository, UsersRepository usersRepository, Long uid, String teraType, String teraPokemon) {
+    public static void setTera(ExtrasRepository extrasRepository, UsersRepository usersRepository, Long uid, String teraPokemon, String teraType) {
         if(usersRepository.findById(uid).isEmpty()) {throw new RuntimeException("User with the provided ID does not exist!");}
         if(extrasRepository.findByUid(uid).isEmpty()) {
             Extras extra = new Extras();
@@ -235,6 +231,7 @@ public class PokeApiDBService {
         } else {
             Extras extra = extrasRepository.findByUid(uid).getFirst();
             extra.setTeraType(teraType);
+            extra.setTeraPokemon(teraPokemon);
             extrasRepository.save(extra);
         }
     }
@@ -351,6 +348,7 @@ public class PokeApiDBService {
         List<Cookies> cookies = cookiesRepository.findByValue(cookieValue);
         Long id = cookies.getFirst().getUid();
         if(extrasRepository.findByUid(id).isEmpty()) { throw new RuntimeException("No Tera Type set for this user!"); }
+
         return Map.of("extra",extrasRepository.findByUid(id).getFirst());
     }
 

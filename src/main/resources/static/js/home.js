@@ -433,6 +433,11 @@ async function loadTeam() {
             }
         }
 
+        if (!text) { return; }
+        if (text.trim() === "") { return; }
+        if (text.trim() === "null") { return; }
+        if (text.trim() === "undefined") { return; }
+
         // Validate text looks like an object (preserve original logic)
         if (!(text.startsWith('{')) || text.startsWith('[')) { return; }
 
@@ -448,9 +453,11 @@ async function loadTeam() {
             return;
         }
 
-        if (teamDiv.firstChild.className === "empty-team-message") {
+        if (teamDiv.firstChild && teamDiv.firstChild.className === "empty-team-message") {
             teamDiv.removeChild(teamDiv.firstChild);
         }
+
+        let teraAssigned = false;
 
         // Render up to 6 team slots
         for (let i = 0; i < 6; i++) {
@@ -467,7 +474,6 @@ async function loadTeam() {
                 div.addEventListener("click", () => {
                     loadPokemon(data.team_members[i]);
                 });
-
                 const image = document.createElement("img");
                 image.className = "team-member-remove-button";
                 image.src = "images/delete.svg";
@@ -479,14 +485,82 @@ async function loadTeam() {
                     await loadTeamDetails();
                 });
 
-                div.appendChild(image);
+                const dropdown = document.createElement("select");
+                dropdown.className = "tera-type-dropdown";
+                const defaultOption = document.createElement("option");
+
+                let response = null;
+                try {
+                    response = await fetch(`/extra-api?id=${data.team_members[i]}`);
+                } catch (err) {
+                    console.error(err);
+                }
+
+                defaultOption.value = "";
+                defaultOption.textContent = "None";
+
+                dropdown.appendChild(defaultOption);
+                const types = ["normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground", "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy"];
+                for (const type of types) {
+                    const option = document.createElement("option");
+                    option.value = type;
+                    option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+                    dropdown.appendChild(option);
+                }
+
+                if (response && response.ok) {
+                    try {
+                        const extraData = await response.json();
+                        const teraType = extraData.extra.extra.teraType;
+                        const teraPokemon = extraData.extra.extra.teraPokemon;
+                        if (teraPokemon == data.team_members[i] && !teraAssigned) {
+                            dropdown.value = teraType;
+                            teraAssigned = true;
+                        } else {
+                            dropdown.value = "";
+
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+
+                dropdown.addEventListener("change", async () => {
+                    try {
+                        const selectedType = dropdown.value;
+                        const pokemonId = data.team_members[i];
+                        const response = await fetch(`/extra/set?id=${pokemonId}&type=${selectedType}`, { method: "POST" });
+                        if (!response || !response.ok) {
+                            dropdown.value = "";
+                            return;
+                        } else {
+                            if (selectedType !== "") {
+                                const all = document.getElementsByClassName("tera-type-dropdown");
+                                for (const other of all) {
+                                    if (other !== dropdown && other.value !== "") {
+                                        other.value = "";
+                                    }
+                                }
+                            }
+                        }
+                        loadTeamDetails();
+                        loadTypeColorIndicators();
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }, false);
+
+                const controllDiv = document.createElement("div");
+                controllDiv.className = "control-div";
+                controllDiv.appendChild(dropdown);
+                controllDiv.appendChild(image);
+                div.appendChild(controllDiv);
                 teamDiv.appendChild(div);
             }
         }
     } catch (err) { console.error(err); }
 }
 
-// Call server to remove a team member (no UI changes here)
 async function removeTeamMember(pokemonId) {
     try {
         const response = await fetch(`/team/remove/${pokemonId}`);
