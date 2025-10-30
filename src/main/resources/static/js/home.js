@@ -359,6 +359,7 @@ async function loadPokemon(id) {
 
         // Populate DOM elements (preserve same markup as original)
         document.getElementById("pokemon-name").innerHTML = `<h4 id="name-header">Name: ${data.pokemon.name} / ID: ${data.pokemon.id}</h4>` + '<button id="add-to-team" class="add-team-button">Add to Team</button>';
+        await loadAddToTeamButton();
         document.getElementById("pokemon-official-artwork-image").src = data.pokemon.sprites.other.officialArtwork.frontDefault || "images/ball.png";
         document.getElementById("pokemon-pixel-artwork-image").src = data.pokemon.sprites.frontDefault || "images/ball.png";
         document.getElementById("pokemon-height").innerHTML = `<h4 id="height-header">Height: ${data.pokemon.height}</h4>`;
@@ -403,7 +404,6 @@ async function loadPokemon(id) {
         // Update browser URL and re-attach the add-to-team button
         const newUrl = `/pokemon?id=${data.pokemon.id}`;
         window.history.pushState(null, '', newUrl);
-        await loadAddToTeamButton();
     } catch (err) {
         console.error("Error loading Pokemon:", err);
     }
@@ -611,9 +611,10 @@ async function pasteSiteDataFromClipboard() {
 
         loadPokemon(data.pokemon.pokemon.id || 1);
 
+        await loadAddToTeamButton();
         await loadMoveTooltips();
         await loadTypeColorIndicators();
-        await loadAddToTeamButton();
+
 
         console.log("Page rebuilt from clipboard JSON");
     } catch (err) {

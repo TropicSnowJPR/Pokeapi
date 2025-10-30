@@ -12,11 +12,11 @@ public class UserSignupTests {
     @Test
     public void userCanSignUpSuccessfully() {
         open("https://localhost:8081/signup");
-        $(By.id("username")).setValue("newuser123");
-        $(By.id("email")).setValue("newuser123@mail.com");
+        $(By.id("username")).setValue("jonny");
+        $(By.id("email")).setValue("jonny@mail.com");
         $(By.id("password")).setValue("StrongPass!23");
         $(By.className("button")).click();
-        $(By.id("username")).shouldHave(text("newuser123"));
+        $(By.id("username")).shouldHave(text("jonny"));
         $(By.id("user-logout")).click();
     }
 

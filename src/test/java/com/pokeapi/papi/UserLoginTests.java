@@ -13,7 +13,7 @@ public class UserLoginTests {
     public void userCanLoginByEmail() {
         open("https://localhost:8081/login");
         $(By.id("usernameoremail")).setValue("jonny@mail.com");
-        $(By.id("password")).setValue("IDontKnow123!");
+        $(By.id("password")).setValue("StrongPass!23");
         $(By.className("button")).click();
         $(By.id("username")).shouldHave(text("jonny")); // Waits until element gets text
         $(By.id("user-logout")).click();
@@ -23,7 +23,7 @@ public class UserLoginTests {
     public void userCanLoginByUsername() {
         open("https://localhost:8081/login");
         $(By.id("usernameoremail")).setValue("jonny");
-        $(By.id("password")).setValue("IDontKnow123!");
+        $(By.id("password")).setValue("StrongPass!23");
         $(By.className("button")).click();// Waits until element disappears
         $(By.id("username")).shouldHave(text("jonny"));
         $(By.id("user-logout")).click();
@@ -44,7 +44,7 @@ public class UserLoginTests {
         $(By.id("usernameoremail")).setValue("");
         $(By.id("password")).setValue("");
         $(By.className("button")).click();
-        $(By.className("errormessage")).shouldHave(text("⚠️ Login fields cannot be empty."));
+        $(By.className("errormessage")).shouldHave(text("⚠️ All fields are required."));
     }
 
 }

@@ -584,6 +584,7 @@ public class PokeApiApplication {
             }
             try {
                 PokeApiDBService.createUser(usersRepository, req.username(), req.email(), req.password(), req.salt());
+                PokeApiDBService.createTeam(teamsRepository, usersRepository, PokeApiDBService.getIdByUsernameOrEmail(usersRepository, req.username()));
             } catch (Exception _) {}
             String cookieValue;
             try {

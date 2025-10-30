@@ -1,20 +1,24 @@
 package com.pokeapi.papi;
 
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 
+import java.awt.*;
+
 import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PokemonHomeTests {
 
     public void setup() {
         open("https://localhost:8081/login");
         $(By.id("usernameoremail")).setValue("jonny");
-        $(By.id("password")).setValue("IDontKnow123!");
+        $(By.id("password")).setValue("StrongPass!23");
         $(By.className("button")).click();// Waits until element disappears
         $(By.id("username")).shouldHave(text("jonny"));
+        $(By.id("user-logout")).click();
     }
 
     @Test
@@ -24,7 +28,9 @@ public class PokemonHomeTests {
         $(By.id("random-button")).click();
         if ($(By.id("pokemon-name")).getText().isEmpty() && $(By.id("pokemon-name")).getText() == "Name: rayquaza / ID:" && $(By.id("pokemon-name")).getText() != firstValue) {
             throw new AssertionError("Random Pokemon name should not be empty");
+
         }
+        $(By.id("user-logout")).click();
     }
 
     @Test
@@ -33,6 +39,7 @@ public class PokemonHomeTests {
         $(By.id("search")).setValue("pikachu");
         $(By.id("search-button")).click();
         $(By.id("pokemon-name")).shouldHave(text("Name: pikachu / ID: 25"));
+        $(By.id("user-logout")).click();
     }
 
     @Test
@@ -41,61 +48,60 @@ public class PokemonHomeTests {
         $(By.id("search")).setValue("pikachu");
         $(By.id("search-button")).click();
         $(By.id("pokemon-name")).shouldHave(text("Name: pikachu / ID: 25"));
-        $(By.id("add-to-team-button")).click();
-        $(By.id("team-member")).shouldHave(text("pikachu"));
-    }
-
-    @Test
-    public void removePokemonFromTeamHomePageTest() {
-        // This is a final placeholder for future tests related to the Pokemon Home page.
-    }
-
-    @Test
-    public void teamDetailsHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
-    }
-
-    @Test
-    public void terastallizeChangeHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
+        $(By.id("add-to-team")).click();
+        assertTrue($$(By.className("team-member")).texts().contains("pikachu"));
+        $(By.id("user-logout")).click();
     }
 
     @Test
     public void copyPokemonHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
+        setup();
+        $(By.id("search")).setValue("pikachu");
+        $(By.id("search-button")).click();
+        $(By.id("pokemon-name")).shouldHave(text("Name: pikachu / ID: 25"));
+        $(By.id("copy-pokemon")).click();
+        Alert alert = switchTo().alert();
+        String alertText = alert.getText();
+        alert.accept();
+        assertTrue(alertText.contains("copied") || alertText.contains("copy")); // adjust expected text as needed
+        String clipboardContent;
+        try {
+            clipboardContent = (String) Toolkit.getDefaultToolkit()
+                    .getSystemClipboard()
+                    .getData(java.awt.datatransfer.DataFlavor.stringFlavor);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to read clipboard", e);
+        }
+        $(By.id("user-logout")).click();
     }
 
     @Test
     public void pastePokemonHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
+        setup();
+        String pokemonData = "{\"pokemon\": { \"success\": true, \"pokemon\": {\"id\": 1, \"name\": \"bulbasaur\"}}}";// Example data to paste
+        try {
+            Toolkit.getDefaultToolkit()
+                    .getSystemClipboard()
+                    .setContents(new java.awt.datatransfer.StringSelection(pokemonData), null);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to write to clipboard", e);
+        }
+        $(By.id("paste-pokemon")).click();
+        $(By.id("pokemon-name")).shouldHave(text("Name: bulbasaur / ID: 1"));
+        $(By.id("user-logout")).click();
     }
 
     @Test
     public void downloadExcelHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
+        setup();
+        $(By.id("download-excel")).click();
+        $(By.id("user-logout")).click();
     }
 
     @Test void downloadCSVHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
+        setup();
+        $(By.id("download-csv")).click();
+        $(By.id("user-logout")).click();
     }
 
-    @Test
-    public void checkMoveInfoHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
-    }
-
-    @Test
-    public void audioPlaybackHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
-    }
-
-    @Test
-    public void openAccountSettingsHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
-    }
-
-    @Test
-    public void logoutUserHomePageTest() {
-        // This is a placeholder for future tests related to the Pokemon Home page.
-    }
 }
